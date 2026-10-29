@@ -120,6 +120,32 @@ class Contratacion(models.Model):
 
     def __str__(self):
         return f"Folio {self.folio} - {self.cliente.razon_social} ({self.plan.nombre})"
+    
+    from django.utils import timezone
+
+    @property
+    def dias_para_vencer(self):
+        """Calcula los días restantes hasta la fecha de vencimiento."""
+        if not self.fecha_vencimiento:
+            return 0
+        hoy = timezone.now().date()
+        diferencia = (self.fecha_vencimiento - hoy).days
+        return diferencia
+
+    @property
+    def requiere_renovacion(self):
+        """Devuelve True si faltan 30 días o menos para vencer, o si ya venció."""
+        return self.dias_para_vencer <= 30
+
+    @property
+    def estado_alerta_color(self):
+        """Devuelve clases de color Tailwind según la urgencia."""
+        dias = self.dias_para_vencer
+        if dias < 0:
+            return 'bg-red-100 text-red-800 border-red-300'
+        elif dias <= 30:
+            return 'bg-amber-100 text-amber-800 border-amber-300'
+        return 'bg-emerald-100 text-emerald-800 border-emerald-300'
 
 
 # -----------------------------------------------------------------------------
@@ -162,17 +188,33 @@ class DocumentoLegalTech(models.Model):
         ('arriendo_estacionamiento', 'Contrato Arriendo Estacionamiento'),
     ]
 
+    ESTADO_FIRMA_CHOICES = [
+        ('BORRADOR', 'Borrador'),
+        ('PENDIENTE_FIRMA', 'Pendiente de Firma FEA'),
+        ('FIRMADO_FEA', 'Firmado Digitalmente (FEA)'),
+        ('EN_NOTARIA', 'En Trámite Notarial'),
+        ('LEGALIZADO', 'Legalizado en Notaría'),
+    ]
+
     folio = models.CharField(max_length=20, unique=True, editable=False)
     usuario = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='documentos_legaltech')
     tipo_documento = models.CharField(max_length=30, choices=TIPO_CHOICES)
     fecha_emision = models.DateTimeField(auto_now_add=True)
     datos_json = models.JSONField(help_text="Parámetros ingresados al generar el PDF")
+    
+    # NUEVOS CAMPOS FASE C (FEA Y NOTARÍA)
+    estado_firma = models.CharField(max_length=20, choices=ESTADO_FIRMA_CHOICES, default='FIRMADO_FEA')
+    hash_firma = models.CharField(max_length=64, blank=True, null=True, help_text="Hash SHA-256 de la Firma Electrónica Avanzada")
+    fecha_firma = models.DateTimeField(blank=True, null=True)
+    notaria_asignada = models.CharField(max_length=100, blank=True, null=True, default="Notaría 36° de Santiago")
 
     def save(self, *args, **kwargs):
         if not self.folio:
-            # Genera un folio único corto como "LT-2026-A1B2C3"
             self.folio = f"LT-{timezone.now().year}-{uuid.uuid4().hex[:6].upper()}"
+        if not self.hash_firma:
+            # Hash simulado único para FEA
+            self.hash_firma = uuid.uuid4().hex
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.folio} - {self.get_tipo_documento_display()} ({self.usuario.username})"
+        return f"{self.folio} - {self.get_tipo_documento_display()} ({self.get_estado_firma_display()})"

@@ -7,6 +7,7 @@ from .views import (
     login_view,
     logout_view,
     registro_view,
+    validar_folio_view,
     generar_documento_legaltech_pdf, 
 )
 
@@ -18,5 +19,6 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('registro/', registro_view, name='registro'),
+    path('validar/<str:folio>/', validar_folio_view, name='validar_folio'),
     path('documentos/legaltech/<str:tipo_doc>/', generar_documento_legaltech_pdf, name='documento_legaltech_pdf'), # <--- Sin "views."
 ]

@@ -28,7 +28,7 @@
     </div>
 
     {% if es_trabajador %}
-        <!-- ================= PANEL DEL TRABAJADOR ================= -->
+<!-- ================= PANEL DEL TRABAJADOR / ADMIN ================= -->
         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
             
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
@@ -75,7 +75,7 @@
                 </div>
             </form>
 
-            <!-- Tabla de Contrataciones -->
+            <!-- Tabla de Contrataciones con Alertas de Vencimiento -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs text-gray-600">
                     <thead class="bg-gray-50 text-gray-800 font-bold uppercase border-b">
@@ -84,14 +84,14 @@
                             <th class="p-3">Cliente / Empresa</th>
                             <th class="p-3">Plan</th>
                             <th class="p-3">Monto</th>
-                            <th class="p-3">Estado</th>
-                            <th class="p-3">Fecha</th>
+                            <th class="p-3">Estado / Vencimiento</th>
+                            <th class="p-3">Inicio</th>
                             <th class="p-3 text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         {% for c in contrataciones %}
-                            <tr class="hover:bg-gray-50 transition">
+                            <tr class="hover:bg-gray-50 transition {% if c.requiere_renovacion %}bg-amber-50/40{% endif %}">
                                 <td class="p-3 font-bold">#{{ c.id }}</td>
                                 <td class="p-3">
                                     <span class="font-semibold text-gray-900 block">{{ c.usuario.username }}</span>
@@ -100,17 +100,32 @@
                                 <td class="p-3 font-medium text-gray-700">{{ c.plan.nombre }}</td>
                                 <td class="p-3 font-bold text-gray-900">${{ c.monto_pagado }}</td>
                                 <td class="p-3">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold 
-                                        {% if c.estado == 'ACTIVO' %}bg-emerald-100 text-emerald-800{% elif c.estado == 'PENDIENTE' %}bg-amber-100 text-amber-800{% else %}bg-red-100 text-red-800{% endif %}">
-                                        {{ c.estado }}
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold border {{ c.estado_alerta_color }}">
+                                        {% if c.dias_para_vencer < 0 %}
+                                            VENCIDO (hace {{ c.dias_para_vencer|add:"-1" }} días)
+                                        {% elif c.dias_para_vencer <= 30 %}
+                                            VENCE EN {{ c.dias_para_vencer }} DÍAS
+                                        {% else %}
+                                            {{ c.estado }} (Vence {{ c.fecha_vencimiento|date:"d/m/Y" }})
+                                        {% endif %}
                                     </span>
                                 </td>
                                 <td class="p-3 text-gray-400">{{ c.fecha_inicio|date:"d/m/Y" }}</td>
                                 <td class="p-3 text-center">
-                                    <button onclick="verDetalleContrato('{{ c.id }}', '{{ c.usuario.username }}', '{{ c.usuario.email }}', '{{ c.plan.nombre }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ c.usuario.perfilcliente.rut_empresa|default:"No registrado" }}', '{{ c.usuario.perfilcliente.razon_social|default:"No registrada" }}', '{{ c.usuario.perfilcliente.telefono|default:"No informado" }}')" 
-                                            class="px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold rounded border border-blue-200 transition">
-                                        <i class="fa-solid fa-eye mr-1"></i> Ver
-                                    </button>
+                                    <div class="flex justify-center items-center gap-1.5">
+                                        <button onclick="verDetalleContrato('{{ c.id }}', '{{ c.usuario.username }}', '{{ c.usuario.email }}', '{{ c.plan.nombre }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ c.usuario.perfilcliente.rut_empresa|default:"No registrado" }}', '{{ c.usuario.perfilcliente.razon_social|default:"No registrada" }}', '{{ c.usuario.perfilcliente.telefono|default:"No informado" }}')" 
+                                                class="px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold rounded border border-blue-200 transition">
+                                            <i class="fa-solid fa-eye mr-1"></i> Ver
+                                        </button>
+
+                                        {% if c.requiere_renovacion %}
+                                        <a href="{% url 'pasarela' %}?plan={{ c.plan.nombre }}&renovacion=true" 
+                                           class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded shadow-sm transition flex items-center gap-1"
+                                           title="Renovar plan inmediatamente">
+                                            <i class="fa-solid fa-rotate-right"></i> Renovar
+                                        </a>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                         {% empty %}
@@ -135,21 +150,47 @@
                 
                 <div class="space-y-3">
                     {% for c in contrataciones %}
-                        <div class="border rounded-lg p-3 bg-gray-50 text-xs space-y-2 flex justify-between items-center hover:border-emerald-300 transition">
-                            <div class="space-y-1">
-                                <div class="flex items-center gap-2 font-bold">
-                                    <span class="text-gray-900">{{ c.plan.nombre }}</span>
-                                    <span class="text-[10px] px-1.5 py-0.5 rounded {% if c.estado == 'ACTIVO' %}bg-emerald-100 text-emerald-800{% else %}bg-amber-100 text-amber-800{% endif %} font-semibold">
-                                        {{ c.estado }}
-                                    </span>
+                        <div class="border rounded-lg p-3 text-xs space-y-2 hover:border-emerald-300 transition {% if c.requiere_renovacion %}bg-amber-50/50 border-amber-300{% else %}bg-gray-50 border-gray-200{% endif %}">
+                            <div class="flex justify-between items-start">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2 font-bold">
+                                        <span class="text-gray-900 text-sm">{{ c.plan.nombre }}</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded border font-bold {{ c.estado_alerta_color }}">
+                                            {% if c.dias_para_vencer < 0 %}
+                                                VENCIDO (hace {{ c.dias_para_vencer|add:"-1" }} días)
+                                            {% elif c.dias_para_vencer <= 30 %}
+                                                VENCE EN {{ c.dias_para_vencer }} DÍAS
+                                            {% else %}
+                                                {{ c.estado }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-600">Monto: <b>${{ c.monto_pagado }} CLP</b></p>
+                                    <p class="text-gray-400 text-[10px]">Contratado: {{ c.fecha_inicio|date:"d/m/Y" }} | Vence: {{ c.fecha_vencimiento|date:"d/m/Y" }}</p>
                                 </div>
-                                <p class="text-gray-500">Monto: ${{ c.monto_pagado }} CLP</p>
-                                <p class="text-gray-400 text-[10px]">Fecha: {{ c.fecha_inicio|date:"d/m/Y" }}</p>
+
+                                <div class="flex flex-col gap-1 items-end">
+                                    <button onclick="verDetalleContrato('{{ c.id }}', '{{ user.username }}', '{{ user.email }}', '{{ c.plan.nombre }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ user.perfilcliente.rut_empresa|default:"No registrado" }}', '{{ user.perfilcliente.razon_social|default:"No registrada" }}', '{{ user.perfilcliente.telefono|default:"No informado" }}')" 
+                                            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition shadow-sm">
+                                        <i class="fa-solid fa-file-lines mr-1"></i> Detalle
+                                    </button>
+
+                                    {% if c.requiere_renovacion %}
+                                    <a href="{% url 'pasarela' %}?plan={{ c.plan.nombre }}&renovacion=true" 
+                                       class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold rounded-lg transition shadow-sm flex items-center gap-1">
+                                        <i class="fa-solid fa-rotate-right"></i> Renovar
+                                    </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <button onclick="verDetalleContrato('{{ c.id }}', '{{ user.username }}', '{{ user.email }}', '{{ c.plan.nombre }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ user.perfilcliente.rut_empresa|default:"No registrado" }}', '{{ user.perfilcliente.razon_social|default:"No registrada" }}', '{{ user.perfilcliente.telefono|default:"No informado" }}')" 
-                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition shadow-sm">
-                                <i class="fa-solid fa-file-lines mr-1"></i> Detalle
-                            </button>
+
+                            <!-- Alerta de advertencia al cliente si faltan <= 30 días o está vencido -->
+                            {% if c.requiere_renovacion %}
+                            <div class="pt-2 border-t border-amber-200 text-[11px] text-amber-800 flex items-center gap-1.5 font-medium">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                                <span>Su plan requiere renovación pronta para evitar la suspensión del Domicilio Tributario.</span>
+                            </div>
+                            {% endif %}
                         </div>
                     {% empty %}
                         <div class="text-center py-6 text-gray-400 text-xs border border-dashed rounded-lg">
@@ -160,6 +201,7 @@
                 </div>
             </div>
 
+            <!-- Datos de la Empresa -->
             <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                 <h2 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-building text-emerald-600"></i> Datos de la Empresa

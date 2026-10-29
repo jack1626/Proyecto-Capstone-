@@ -557,17 +557,28 @@ def generar_documento_legaltech_pdf(request, tipo_doc):
     else:
         raise Http404("Tipo de documento no válido")
 
-    # --- SELLO Y FOLIO DIGITAL (PIE DE PÁGINA) ---
-    story.append(Spacer(1, 30))
-    sello_html = f"""
+  # --- SELLO Y CERTIFICACIÓN FEA + NOTARÍA (PIE DE PÁGINA) ---
+    story.append(Spacer(1, 20))
+    
+    sello_fea_html = f"""
     <hr/>
     <br/>
-    <b>DOCUMENTO CERTIFICADO DIGITALMENTE POR PLATAFORMA LEGALTECH EASY OFFICE</b><br/>
-    <b>Folio Único:</b> {doc_registro.folio} | <b>Fecha de Emisión:</b> {doc_registro.fecha_emision.strftime('%d/%m/%Y %H:%M:%S')} UTC<br/>
-    <b>Emitido para:</b> {request.user.email} | <b>Verificación:</b> http://easycap/validar/{doc_registro.folio}
+    <b>DOCUMENTO FIRMADO MEDIANTE FIRMA ELECTRÓNICA AVANZADA (FEA)</b><br/>
+    <b>Folio Único:</b> {doc_registro.folio} | <b>Estado:</b> {doc_registro.get_estado_firma_display().upper()}<br/>
+    <b>Hash FEA (SHA-256):</b> <font face="Courier">{doc_registro.hash_firma}</font><br/>
+    <b>Coordinación Notarial:</b> {doc_registro.notaria_asignada}<br/>
+    <b>Firmante:</b> {request.user.get_full_name() or request.user.username} ({request.user.email})<br/>
+    <b>Verificación en Línea:</b> http://easycap/validar/{doc_registro.folio}
     """
-    story.append(Paragraph(sello_html, style_folio))
+    story.append(Paragraph(sello_fea_html, style_folio))
 
     doc.build(story)
     buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"{doc_registro.folio}_{tipo_doc}.pdf")
+    return FileResponse(buffer, as_attachment=True, filename=f"{doc_registro.folio}_{tipo_doc}_FIRMADO.pdf")
+
+def validar_folio_view(request, folio):
+    """
+    Permite a terceros verificar la autenticidad de un documento LegalTech.
+    """
+    documento = get_object_or_404(DocumentoLegalTech, folio=folio)
+    return render(request, 'servicios/validar_folio.html', {'doc': documento})
