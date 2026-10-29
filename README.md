@@ -75,7 +75,7 @@ Sigue esto en la consola de comandos de Windows (`cmd`) para desplegar y probar 
 
    python manage.py migrate
 
-   python manage.py runserver
+   python manage.py runserver 80
 
 
 ---
