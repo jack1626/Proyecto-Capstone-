@@ -2,7 +2,7 @@ import json
 import io
 from datetime import date
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout as django_logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -10,7 +10,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, FileResponse, Http404
 from django.utils import timezone
+from django.db.models import Q
 
+# Para la generación del PDF
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
@@ -20,12 +22,140 @@ from .forms import RegistroClienteForm
 from .models import Plan, Contratacion, Cliente
 
 
+# ==========================================
+# 1. LANDING PAGE & PASARELA DE VENTAS
+# ==========================================
+
+def home_view(request):
+    """
+    Página de Inicio / Landing Page principal.
+    """
+    planes = Plan.objects.filter(activo=True) if hasattr(Plan, 'activo') else Plan.objects.all()
+    return render(request, 'servicios/home.html', {'planes': planes})
+
+
 def pasarela_view(request):
-    planes = Plan.objects.filter(activo=True).order_by('precio_mensual')
+    """
+    Vista de la pasarela para contratación de planes.
+    """
+    planes = Plan.objects.filter(activo=True).order_by('precio_mensual') if hasattr(Plan, 'activo') else Plan.objects.all()
     return render(request, 'servicios/pasarela.html', {'planes': planes})
 
 
+@login_required
+@require_POST
+def procesar_pago_view(request):
+    """
+    Procesa la transacción de contratación vía AJAX/Fetch.
+    """
+    try:
+        data = json.loads(request.body)
+        plan_nombre = data.get('plan_nombre')
+        
+        plan = Plan.objects.get(nombre=plan_nombre, activo=True)
+        
+        cliente, _ = Cliente.objects.get_or_create(
+            email=request.user.email,
+            defaults={
+                'rut': request.user.username,
+                'razon_social': request.user.get_full_name() or request.user.username,
+                'email': request.user.email,
+            }
+        )
+        
+        monto = getattr(plan, 'precio_anual', None)
+        if not monto or monto <= 0:
+            monto = getattr(plan, 'precio_mensual', getattr(plan, 'precio', 0))
+
+        contratacion = Contratacion.objects.create(
+            cliente=cliente,
+            plan=plan,
+            fecha_inicio=timezone.now().date(),
+            fecha_vencimiento=timezone.now().date() + timezone.timedelta(days=365),
+            monto_pagado=monto,
+            estado='ACTIVO'
+        )
+        
+        folio = getattr(contratacion, 'folio', contratacion.id)
+
+        return JsonResponse({
+            'status': 'success',
+            'mensaje': f'¡Contratación del plan "{plan.nombre}" realizada exitosamente!',
+            'contratacion_id': contratacion.id,
+            'folio': folio
+        })
+        
+    except Plan.DoesNotExist:
+        return JsonResponse({'status': 'error', 'mensaje': 'El plan seleccionado no existe o no se encuentra activo.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=500)
+
+
+# ==========================================
+# 2. PERFIL DE USUARIO Y GESTIÓN DE ROLES
+# ==========================================
+
+@login_required
+def perfil_view(request):
+    """
+    Perfil dinámico con vista de Cliente o Panel de Ejecutivo.
+    Incluye búsqueda por texto y filtro por estado.
+    """
+    hoy = date.today()
+    es_trabajador = request.user.is_staff
+
+    if es_trabajador:
+        query = request.GET.get('q', '').strip()
+        filtro_estado = request.GET.get('estado', '').strip()
+
+        contrataciones = Contratacion.objects.all().select_related('cliente', 'plan').order_by('-fecha_inicio')
+
+        if query:
+            contrataciones = contrataciones.filter(
+                Q(cliente__rut__icontains=query) |
+                Q(cliente__razon_social__icontains=query) |
+                Q(cliente__email__icontains=query)
+            )
+
+        if filtro_estado:
+            contrataciones = contrataciones.filter(estado=filtro_estado)
+
+        for c in contrataciones:
+            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
+
+        context = {
+            'es_trabajador': True,
+            'contrataciones': contrataciones,
+            'clientes': Cliente.objects.all(),
+            'query': query,
+            'filtro_estado': filtro_estado,
+            'hoy': hoy
+        }
+    else:
+        mis_contrataciones = Contratacion.objects.filter(
+            cliente__email=request.user.email
+        ).select_related('plan').order_by('-fecha_inicio')
+
+        for c in mis_contrataciones:
+            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
+
+        context = {
+            'es_trabajador': False,
+            'contrataciones': mis_contrataciones,
+            'hoy': hoy
+        }
+
+    return render(request, 'servicios/perfil.html', context)
+
+
+# ==========================================
+# 3. AUTENTICACIÓN Y REGISTRO
+# ==========================================
+
 def registro_view(request):
+    if request.user.is_authenticated:
+        return redirect('perfil')
+
     if request.method == 'POST':
         form = RegistroClienteForm(request.POST)
         if form.is_valid():
@@ -58,91 +188,14 @@ def login_view(request):
     return render(request, 'servicios/login.html', {'form': form, 'error_message': error_message})
 
 
-@login_required
-def perfil_view(request):
-    hoy = date.today()
-
-    # Si es TRABAJADOR / EJECUTIVO (is_staff = True)
-    if request.user.is_staff:
-        todas_contrataciones = Contratacion.objects.all().select_related('cliente', 'plan').order_by('-fecha_inicio')
-        
-        for c in todas_contrataciones:
-            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
-
-        context = {
-            'es_trabajador': True,
-            'contrataciones': todas_contrataciones,
-            'clientes': Cliente.objects.all(),
-            'hoy': hoy
-        }
-    else:
-        # Busca por su correo electrónico vinculado
-        mis_contrataciones = Contratacion.objects.filter(
-            cliente__email=request.user.email
-        ).select_related('plan').order_by('-fecha_inicio')
-
-        for c in mis_contrataciones:
-            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
-
-        context = {
-            'es_trabajador': False,
-            'contrataciones': mis_contrataciones,
-            'hoy': hoy
-        }
-
-    return render(request, 'servicios/perfil.html', context)
-
-
 def logout_view(request):
     django_logout(request)
-    return redirect('pasarela')
+    return redirect('home')
 
 
-@login_required
-@require_POST
-def procesar_pago_view(request):
-    try:
-        data = json.loads(request.body)
-        plan_nombre = data.get('plan_nombre')
-        
-        plan = Plan.objects.get(nombre=plan_nombre, activo=True)
-        
-        cliente, _ = Cliente.objects.get_or_create(
-            email=request.user.email,
-            defaults={
-                'rut': request.user.username,
-                'razon_social': request.user.get_full_name() or request.user.username,
-                'email': request.user.email,
-            }
-        )
-        
-        monto = getattr(plan, 'precio_anual', None)
-        if not monto or monto <= 0:
-            monto = plan.precio_mensual
-
-        contratacion = Contratacion.objects.create(
-            cliente=cliente,
-            plan=plan,
-            fecha_inicio=timezone.now().date(),
-            fecha_vencimiento=timezone.now().date() + timezone.timedelta(days=365),
-            monto_pagado=monto,
-            estado='ACTIVO'
-        )
-        
-        folio = getattr(contratacion, 'folio', contratacion.id)
-
-        return JsonResponse({
-            'status': 'success',
-            'mensaje': 'Contratación realizada exitosamente',
-            'contratacion_id': contratacion.id,
-            'folio': folio
-        })
-        
-    except Plan.DoesNotExist:
-        return JsonResponse({'status': 'error', 'mensaje': 'El plan seleccionado no existe o no se encuentra activo.'}, status=400)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=500)
-
+# ==========================================
+# 4. CRM Y ADMINISTRACIÓN STAFF
+# ==========================================
 
 @staff_member_required
 def crm_dashboard_view(request):
@@ -153,11 +206,9 @@ def crm_dashboard_view(request):
 
     if query:
         contrataciones = contrataciones.filter(
-            cliente__rut__icontains=query
-        ) | contrataciones.filter(
-            cliente__razon_social__icontains=query
-        ) | contrataciones.filter(
-            cliente__email__icontains=query
+            Q(cliente__rut__icontains=query) |
+            Q(cliente__razon_social__icontains=query) |
+            Q(cliente__email__icontains=query)
         )
 
     if estado_filtro:
@@ -195,6 +246,10 @@ def cambiar_estado_contratacion(request, contratacion_id):
     except Exception as e:
         return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=500)
 
+
+# ==========================================
+# 5. GENERACIÓN Y DESCARGA DE COMPROBANTE PDF
+# ==========================================
 
 @login_required
 def descargar_comprobante_pdf(request, contratacion_id):
