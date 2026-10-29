@@ -1,0 +1,104 @@
+{% extends "servicios/index.html" %}
+
+{% block title %}Easy Office - Oficina Virtual y Dirección Tributaria en Chile{% endblock %}
+
+{% block content %}
+<div class="space-y-16 py-4">
+
+    <!-- ================= HERO SECTION ================= -->
+    <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-8 md:p-14 shadow-2xl relative overflow-hidden">
+        <div class="max-w-3xl space-y-6 relative z-10">
+            <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold text-xs px-3.5 py-1.5 rounded-full inline-flex items-center gap-2">
+                <i class="fa-solid fa-bolt text-emerald-400"></i> Formalización 100% Digital en Chile
+            </span>
+            <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                Tu Empresa Lista para Operar con <span class="text-emerald-400">Dirección Tributaria</span> Inmediata.
+            </h1>
+            <p class="text-gray-300 text-sm md:text-base leading-relaxed">
+                Obtén la dirección comercial y tributaria autorizada por el SII para tu PYME o startup. Sin costos de arriendo físico ni contratos amarrados.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                <a href="{% url 'pasarela' %}" class="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    Ver Planes y Contratar <i class="fa-solid fa-arrow-right"></i>
+                </a>
+                <a href="{% url 'registro' %}" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 backdrop-blur-sm">
+                    Crear Cuenta Gratis
+                </a>
+            </div>
+        </div>
+        <!-- Decoración Visual -->
+        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    </section>
+
+    <!-- ================= PROPOSE DE VALOR / CARACTERÍSTICAS ================= -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+            <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-xl font-bold">
+                <i class="fa-solid fa-scale-balanced"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-900 text-base">Aprobación SII y Patente</h3>
+            <p class="text-gray-500 text-xs leading-relaxed">
+                Direcciones ubicadas en comunas estratégicas para garantizar la obtención de tu patente comercial municipal.
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+            <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-xl font-bold">
+                <i class="fa-solid fa-envelope-open-text"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-900 text-base">Gestión de Correspondencia</h3>
+            <p class="text-gray-500 text-xs leading-relaxed">
+                Recepcionamos tus cartas, encomiendas y notificaciones con digitalización e informaciones en tiempo real.
+            </p>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+            <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-xl font-bold">
+                <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <h3 class="font-extrabold text-gray-900 text-base">Autogestión Centralizada</h3>
+            <p class="text-gray-500 text-xs leading-relaxed">
+                Accede a tu panel privado para descargar certificados, contratos y comprobantes de pago cuando lo necesites.
+            </p>
+        </div>
+    </section>
+
+    <!-- ================= VISTA PREVIA DE PLANES ================= -->
+    <section class="space-y-8">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Planes Adaptados a Tu Crecimiento</h2>
+            <p class="text-gray-500 text-xs md:text-sm">Selecciona la solución que mejor se ajuste a la etapa actual de tu negocio.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for plan in planes %}
+                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between hover:border-emerald-500 transition relative">
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">{{ plan.nombre }}</h3>
+                            <p class="text-gray-400 text-xs mt-1 leading-relaxed">{{ plan.descripcion }}</p>
+                        </div>
+                        <div class="text-2xl font-black text-emerald-600">
+                            {% if plan.precio_anual %}
+                                ${{ plan.precio_anual|floatformat:0 }} <span class="text-xs text-gray-400 font-normal">CLP / año</span>
+                            {% elif plan.precio_mensual %}
+                                ${{ plan.precio_mensual|floatformat:0 }} <span class="text-xs text-gray-400 font-normal">CLP / mes</span>
+                            {% else %}
+                                ${{ plan.precio|default:0|floatformat:0 }} <span class="text-xs text-gray-400 font-normal">CLP</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'pasarela' %}" class="mt-6 w-full py-2.5 bg-gray-900 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl text-center transition">
+                        Contratar Plan
+                    </a>
+                </div>
+            {% empty %}
+                <div class="col-span-3 text-center py-8 text-gray-400 text-xs border border-dashed rounded-2xl">
+                    Cargando catálogo de servicios...
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

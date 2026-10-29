@@ -2,7 +2,7 @@ import json
 import io
 from datetime import date
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout as django_logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -10,22 +10,152 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, FileResponse, Http404
 from django.utils import timezone
+from django.db.models import Q
 
+# Para la generación del PDF
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
 from .forms import RegistroClienteForm
 from .models import Plan, Contratacion, Cliente
 
 
+# ==========================================
+# 1. LANDING PAGE & PASARELA DE VENTAS
+# ==========================================
+
+def home_view(request):
+    """
+    Página de Inicio / Landing Page principal.
+    """
+    planes = Plan.objects.filter(activo=True) if hasattr(Plan, 'activo') else Plan.objects.all()
+    return render(request, 'servicios/home.html', {'planes': planes})
+
+
 def pasarela_view(request):
-    planes = Plan.objects.filter(activo=True).order_by('precio_mensual')
+    """
+    Vista de la pasarela para contratación de planes.
+    """
+    planes = Plan.objects.filter(activo=True).order_by('precio_mensual') if hasattr(Plan, 'activo') else Plan.objects.all()
     return render(request, 'servicios/pasarela.html', {'planes': planes})
 
 
+@login_required
+@require_POST
+def procesar_pago_view(request):
+    """
+    Procesa la transacción de contratación vía AJAX/Fetch.
+    """
+    try:
+        data = json.loads(request.body)
+        plan_nombre = data.get('plan_nombre')
+        
+        plan = Plan.objects.get(nombre=plan_nombre, activo=True)
+        
+        cliente, _ = Cliente.objects.get_or_create(
+            email=request.user.email,
+            defaults={
+                'rut': request.user.username,
+                'razon_social': request.user.get_full_name() or request.user.username,
+                'email': request.user.email,
+            }
+        )
+        
+        monto = getattr(plan, 'precio_anual', None)
+        if not monto or monto <= 0:
+            monto = getattr(plan, 'precio_mensual', getattr(plan, 'precio', 0))
+
+        contratacion = Contratacion.objects.create(
+            cliente=cliente,
+            plan=plan,
+            fecha_inicio=timezone.now().date(),
+            fecha_vencimiento=timezone.now().date() + timezone.timedelta(days=365),
+            monto_pagado=monto,
+            estado='ACTIVO'
+        )
+        
+        folio = getattr(contratacion, 'folio', contratacion.id)
+
+        return JsonResponse({
+            'status': 'success',
+            'mensaje': f'¡Contratación del plan "{plan.nombre}" realizada exitosamente!',
+            'contratacion_id': contratacion.id,
+            'folio': folio
+        })
+        
+    except Plan.DoesNotExist:
+        return JsonResponse({'status': 'error', 'mensaje': 'El plan seleccionado no existe o no se encuentra activo.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=500)
+
+
+# ==========================================
+# 2. PERFIL DE USUARIO Y GESTIÓN DE ROLES
+# ==========================================
+
+@login_required
+def perfil_view(request):
+    """
+    Perfil dinámico con vista de Cliente o Panel de Ejecutivo.
+    Incluye búsqueda por texto y filtro por estado.
+    """
+    hoy = date.today()
+    es_trabajador = request.user.is_staff
+
+    if es_trabajador:
+        query = request.GET.get('q', '').strip()
+        filtro_estado = request.GET.get('estado', '').strip()
+
+        contrataciones = Contratacion.objects.all().select_related('cliente', 'plan').order_by('-fecha_inicio')
+
+        if query:
+            contrataciones = contrataciones.filter(
+                Q(cliente__rut__icontains=query) |
+                Q(cliente__razon_social__icontains=query) |
+                Q(cliente__email__icontains=query)
+            )
+
+        if filtro_estado:
+            contrataciones = contrataciones.filter(estado=filtro_estado)
+
+        for c in contrataciones:
+            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
+
+        context = {
+            'es_trabajador': True,
+            'contrataciones': contrataciones,
+            'clientes': Cliente.objects.all(),
+            'query': query,
+            'filtro_estado': filtro_estado,
+            'hoy': hoy
+        }
+    else:
+        mis_contrataciones = Contratacion.objects.filter(
+            cliente__email=request.user.email
+        ).select_related('plan').order_by('-fecha_inicio')
+
+        for c in mis_contrataciones:
+            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
+
+        context = {
+            'es_trabajador': False,
+            'contrataciones': mis_contrataciones,
+            'hoy': hoy
+        }
+
+    return render(request, 'servicios/perfil.html', context)
+
+
+# ==========================================
+# 3. AUTENTICACIÓN Y REGISTRO
+# ==========================================
+
 def registro_view(request):
+    if request.user.is_authenticated:
+        return redirect('perfil')
+
     if request.method == 'POST':
         form = RegistroClienteForm(request.POST)
         if form.is_valid():
@@ -58,91 +188,14 @@ def login_view(request):
     return render(request, 'servicios/login.html', {'form': form, 'error_message': error_message})
 
 
-@login_required
-def perfil_view(request):
-    hoy = date.today()
-
-    # Si es TRABAJADOR / EJECUTIVO (is_staff = True)
-    if request.user.is_staff:
-        todas_contrataciones = Contratacion.objects.all().select_related('cliente', 'plan').order_by('-fecha_inicio')
-        
-        for c in todas_contrataciones:
-            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
-
-        context = {
-            'es_trabajador': True,
-            'contrataciones': todas_contrataciones,
-            'clientes': Cliente.objects.all(),
-            'hoy': hoy
-        }
-    else:
-        # Busca por su correo electrónico vinculado
-        mis_contrataciones = Contratacion.objects.filter(
-            cliente__email=request.user.email
-        ).select_related('plan').order_by('-fecha_inicio')
-
-        for c in mis_contrataciones:
-            c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
-
-        context = {
-            'es_trabajador': False,
-            'contrataciones': mis_contrataciones,
-            'hoy': hoy
-        }
-
-    return render(request, 'servicios/perfil.html', context)
-
-
 def logout_view(request):
     django_logout(request)
-    return redirect('pasarela')
+    return redirect('home')
 
 
-@login_required
-@require_POST
-def procesar_pago_view(request):
-    try:
-        data = json.loads(request.body)
-        plan_nombre = data.get('plan_nombre')
-        
-        plan = Plan.objects.get(nombre=plan_nombre, activo=True)
-        
-        cliente, _ = Cliente.objects.get_or_create(
-            email=request.user.email,
-            defaults={
-                'rut': request.user.username,
-                'razon_social': request.user.get_full_name() or request.user.username,
-                'email': request.user.email,
-            }
-        )
-        
-        monto = getattr(plan, 'precio_anual', None)
-        if not monto or monto <= 0:
-            monto = plan.precio_mensual
-
-        contratacion = Contratacion.objects.create(
-            cliente=cliente,
-            plan=plan,
-            fecha_inicio=timezone.now().date(),
-            fecha_vencimiento=timezone.now().date() + timezone.timedelta(days=365),
-            monto_pagado=monto,
-            estado='ACTIVO'
-        )
-        
-        folio = getattr(contratacion, 'folio', contratacion.id)
-
-        return JsonResponse({
-            'status': 'success',
-            'mensaje': 'Contratación realizada exitosamente',
-            'contratacion_id': contratacion.id,
-            'folio': folio
-        })
-        
-    except Plan.DoesNotExist:
-        return JsonResponse({'status': 'error', 'mensaje': 'El plan seleccionado no existe o no se encuentra activo.'}, status=400)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=500)
-
+# ==========================================
+# 4. CRM Y ADMINISTRACIÓN STAFF
+# ==========================================
 
 @staff_member_required
 def crm_dashboard_view(request):
@@ -153,11 +206,9 @@ def crm_dashboard_view(request):
 
     if query:
         contrataciones = contrataciones.filter(
-            cliente__rut__icontains=query
-        ) | contrataciones.filter(
-            cliente__razon_social__icontains=query
-        ) | contrataciones.filter(
-            cliente__email__icontains=query
+            Q(cliente__rut__icontains=query) |
+            Q(cliente__razon_social__icontains=query) |
+            Q(cliente__email__icontains=query)
         )
 
     if estado_filtro:
@@ -195,6 +246,10 @@ def cambiar_estado_contratacion(request, contratacion_id):
     except Exception as e:
         return JsonResponse({'status': 'error', 'mensaje': str(e)}, status=500)
 
+
+# ==========================================
+# 5. GENERACIÓN Y DESCARGA DE COMPROBANTE PDF
+# ==========================================
 
 @login_required
 def descargar_comprobante_pdf(request, contratacion_id):
@@ -315,3 +370,204 @@ def descargar_comprobante_pdf(request, contratacion_id):
 
     filename = f"Comprobante_EasyOffice_Folio_{contratacion.id}.pdf"
     return FileResponse(buffer, as_attachment=True, filename=filename)
+
+# ==========================================
+# 6. GENERADOR DE DOCUMENTOS LEGALTECH
+# ==========================================
+
+# Asegúrate de importar el modelo al inicio del views.py:
+from .models import Plan, Contratacion, Cliente, DocumentoLegalTech
+
+@login_required
+def generar_documento_legaltech_pdf(request, tipo_doc):
+    # 1. Registrar la generación en BD y obtener folio único
+    params = request.GET.dict()
+    doc_registro = DocumentoLegalTech.objects.create(
+        usuario=request.user,
+        tipo_documento=tipo_doc,
+        datos_json=params
+    )
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=54,
+        leftMargin=54,
+        topMargin=54,
+        bottomMargin=54
+    )
+    
+    styles = getSampleStyleSheet()
+    
+    style_title = ParagraphStyle(
+        'DocTitle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=13,
+        leading=16,
+        alignment=TA_CENTER,
+        spaceAfter=15
+    )
+    
+    style_body = ParagraphStyle(
+        'DocBody',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10,
+        leading=14,
+        alignment=TA_JUSTIFY,
+        spaceAfter=10
+    )
+
+    style_folio = ParagraphStyle(
+        'DocFolio',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor('#4B5563'),
+        alignment=TA_CENTER
+    )
+
+    story = []
+
+    # --- PLANTILLAS ---
+    if tipo_doc == 'poder_simple':
+        empresa_nombre = params.get('empresa_nombre', request.user.username)
+        empresa_rut = params.get('empresa_rut', '77.123.456-7')
+        rep_nombre = params.get('rep_nombre', request.user.get_full_name() or request.user.username)
+        rep_rut = params.get('rep_rut', '12.345.678-9')
+        apoderado_nombre = params.get('apoderado_nombre', 'PEDRO SOTO MENDOZA')
+        apoderado_rut = params.get('apoderado_rut', '15.987.654-3')
+        fecha_str = timezone.now().strftime('%d DE %B DE %Y').upper()
+
+        story.append(Paragraph("PODER SIMPLE - REPRESENTACIÓN SII", style_title))
+        story.append(Spacer(1, 15))
+        
+        texto_comparecencia = f"""
+        En Santiago, a {fecha_str}, don/doña <b>{rep_nombre}</b>, cédula nacional de identidad 
+        N.º <b>{rep_rut}</b>, en representación legal de la sociedad <b>{empresa_nombre}</b>, 
+        R.U.T. N.º <b>{empresa_rut}</b>, otorga poder amplio y suficiente a don/doña 
+        <b>{apoderado_nombre}</b>, cédula nacional de identidad N.º <b>{apoderado_rut}</b>, 
+        para que actúe en nombre y representación de la empresa ante el <b>Servicio de Impuestos Internos (SII)</b>.
+        """
+        story.append(Paragraph(texto_comparecencia, style_body))
+        
+        texto_facultades = """
+        El apoderado queda facultado para realizar trámites de inicio de actividades, verificación de actividad económica, 
+        peticiones administrativas, obtención de e-RUT, retiro de documentación y cualquier otra gestión requerida por la representación.
+        """
+        story.append(Paragraph(texto_facultades, style_body))
+        story.append(Spacer(1, 30))
+        
+        data_firma = [
+            ["_____________________________________"],
+            [f"<b>{rep_nombre}</b>"],
+            [f"R.U.T. {rep_rut}"],
+            [f"p.p. {empresa_nombre}"]
+        ]
+        table_firma = Table([[Paragraph(cell[0], style_title)] for cell in data_firma], colWidths=[400])
+        table_firma.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER')]))
+        story.append(table_firma)
+
+    elif tipo_doc == 'acuerdo_accionistas':
+        empresa_nombre = params.get('empresa_nombre', request.user.username)
+        empresa_rut = params.get('empresa_rut', '77.123.456-7')
+        accionista_1 = params.get('accionista_1', request.user.get_full_name() or request.user.username)
+        accionista_1_rut = params.get('accionista_1_rut', '12.345.678-9')
+        accionista_2 = params.get('accionista_2', 'CARLOS GÓMEZ SILVA')
+        accionista_2_rut = params.get('accionista_2_rut', '14.567.890-1')
+        materia_acuerdo = params.get('materia', 'Aumento de Capital y Modificación de Representación Legal')
+        fecha_str = timezone.now().strftime('%d DE %B DE %Y').upper()
+
+        story.append(Paragraph("ACTA DE ACUERDO EXTRAORDINARIO DE ACCIONISTAS", style_title))
+        story.append(Spacer(1, 10))
+
+        cuerpo = f"""
+        En Santiago, a {fecha_str}, con la asistencia de los accionistas de la sociedad <b>{empresa_nombre}</b>, 
+        R.U.T. N.º <b>{empresa_rut}</b>: don/doña <b>{accionista_1}</b>, C.I. N.º <b>{accionista_1_rut}</b>; 
+        y don/doña <b>{accionista_2}</b>, C.I. N.º <b>{accionista_2_rut}</b>, constituyendo el 100% del capital social suscrito y pagado, 
+        se acuerda por unanimidad lo siguiente:
+        <br/><br/>
+        <b>PRIMERO: MATERIA DEL ACUERDO.</b> Los accionistas convienen en aprobar: <b>{materia_acuerdo}</b>.
+        <br/><br/>
+        <b>SEGUNDO: FACULTADES AL PORTADOR.</b> Se faculta al portador de una copia autorizada del presente documento 
+        para requerir las anotaciones, inscripciones y legalizaciones notariales a que hubiere lugar.
+        """
+        story.append(Paragraph(cuerpo, style_body))
+        story.append(Spacer(1, 30))
+
+        data_firmas = [
+            ["_______________________", "_______________________"],
+            [f"<b>{accionista_1}</b>", f"<b>{accionista_2}</b>"],
+            [f"R.U.T. {accionista_1_rut}", f"R.U.T. {accionista_2_rut}"]
+        ]
+        table_firmas = Table([[Paragraph(cell[0], style_body), Paragraph(cell[1], style_body)] for cell in data_firmas], colWidths=[220, 220])
+        table_firmas.setStyle(TableStyle([('ALIGN', (0,0), (-1,-1), 'CENTER')]))
+        story.append(table_firmas)
+
+    elif tipo_doc == 'arriendo_vehiculo':
+        arrendador = params.get('arrendador', 'EASY OFFICE RENTALS SpA')
+        arrendador_rut = params.get('arrendador_rut', '77.999.888-1')
+        arrendatario = params.get('arrendatario', request.user.username)
+        arrendatario_rut = params.get('arrendatario_rut', '76.543.210-K')
+        marca = params.get('marca', 'TOYOTA')
+        modelo = params.get('modelo', 'YARIS')
+        patente = params.get('patente', 'ABCD-12')
+        monto = params.get('monto', '350.000')
+
+        story.append(Paragraph("CONTRATO DE ARRENDAMIENTO DE VEHÍCULO", style_title))
+        story.append(Spacer(1, 10))
+        
+        cuerpo = f"""
+        En Santiago, comparecen: por una parte, <b>{arrendador}</b>, RUT N.º <b>{arrendador_rut}</b>, en adelante el "Arrendador"; 
+        y por otra parte, <b>{arrendatario}</b>, RUT N.º <b>{arrendatario_rut}</b>, en adelante la "Arrendataria", quienes acuerdan:
+        <br/><br/>
+        <b>PRIMERO: VEHÍCULO.</b> El Arrendador entrega en arrendamiento el vehículo Marca <b>{marca}</b>, Modelo <b>{modelo}</b>, Patente <b>{patente}</b>.
+        <br/><br/>
+        <b>SEGUNDO: RENTA.</b> La renta mensual de arrendamiento será de <b>${monto}</b> pesos chilenos, pagaderos dentro de los primeros 5 días de cada mes.
+        """
+        story.append(Paragraph(cuerpo, style_body))
+
+    elif tipo_doc == 'arriendo_estacionamiento':
+        arrendador = params.get('arrendador', 'EDIFICIO EASY OFFICE')
+        arrendador_rut = params.get('arrendador_rut', '77.888.999-0')
+        arrendatario = params.get('arrendatario', request.user.username)
+        arrendatario_rut = params.get('arrendatario_rut', '76.543.210-K')
+        nro_estacionamiento = params.get('nro_estacionamiento', 'E-12')
+        direccion = params.get('direccion', 'Av. Apoquindo 4500, Las Condes, Santiago')
+        monto = params.get('monto', '80.000')
+
+        story.append(Paragraph("CONTRATO DE ARRIENDO DE ESTACIONAMIENTO", style_title))
+        story.append(Spacer(1, 10))
+
+        cuerpo = f"""
+        En Santiago, comparecen: <b>{arrendador}</b>, RUT N.º <b>{arrendador_rut}</b> (el "Arrendador"); 
+        y <b>{arrendatario}</b>, RUT N.º <b>{arrendatario_rut}</b> (el "Arrendatario"), conviniendo lo siguiente:
+        <br/><br/>
+        <b>PRIMERO: INMUEBLE.</b> El Arrendador cede el uso del estacionamiento N.º <b>{nro_estacionamiento}</b>, ubicado en el subterráneo de <b>{direccion}</b>.
+        <br/><br/>
+        <b>SEGUNDO: CANON DE ARRIENDO.</b> El precio del arriendo mensual es de <b>${monto}</b> pesos chilenos.
+        <br/><br/>
+        <b>TERCERO: USO.</b> El sitio se destinará exclusivamente al estacionamiento de un vehículo motorizado particular, respetando el reglamento interno del inmueble.
+        """
+        story.append(Paragraph(cuerpo, style_body))
+
+    else:
+        raise Http404("Tipo de documento no válido")
+
+    # --- SELLO Y FOLIO DIGITAL (PIE DE PÁGINA) ---
+    story.append(Spacer(1, 30))
+    sello_html = f"""
+    <hr/>
+    <br/>
+    <b>DOCUMENTO CERTIFICADO DIGITALMENTE POR PLATAFORMA LEGALTECH EASY OFFICE</b><br/>
+    <b>Folio Único:</b> {doc_registro.folio} | <b>Fecha de Emisión:</b> {doc_registro.fecha_emision.strftime('%d/%m/%Y %H:%M:%S')} UTC<br/>
+    <b>Emitido para:</b> {request.user.email} | <b>Verificación:</b> http://easycap/validar/{doc_registro.folio}
+    """
+    story.append(Paragraph(sello_html, style_folio))
+
+    doc.build(story)
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"{doc_registro.folio}_{tipo_doc}.pdf")

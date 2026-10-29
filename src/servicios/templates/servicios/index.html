@@ -1,92 +1,139 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Easy Office - Ecosistema Digital{% endblock %}</title>
-    
-    <!-- Tailwind CSS y FontAwesome -->
+    <title>{% block title %}Easy Office - Soluciones Empresariales{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Estilos Estáticos -->
-    <link rel="stylesheet" href="{% static 'servicios/css/styles.css' %}">
+    <style>
+        .step-active { background-color: #059669; color: white; }
+        .step-inactive { background-color: #E5E7EB; color: #4B5563; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans text-gray-800">
 
-    <!-- Preloader -->
-    <div id="preloader">
-        <div class="text-center">
-            <img src="{% static 'servicios/img/logo.jpg' %}" alt="Easy Office Logo" class="preloader-logo mx-auto drop-shadow-md" onerror="this.src='https://via.placeholder.com/200x60?text=Easy+Office'">
-        </div>
-    </div>
+    <!-- ================= NAVBAR DINÁMICA ================= -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
-    <!-- Header Principal -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="{% url 'pasarela' %}" class="flex items-center space-x-3">
-                    <img src="{% static 'servicios/img/logo.jpg' %}" alt="Logo" class="h-9 w-auto" onerror="this.src='https://via.placeholder.com/120x40?text=Easy+Office'">
-                    <span class="text-xl font-bold tracking-tight text-gray-900">easy office</span>
-                </a>
-                
-                <div class="flex items-center gap-4">
-                    <div class="hidden sm:block text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-medium border border-emerald-200">
-                        Entorno Modular Django
-                    </div>
-
-                    <!-- Estado de Usuario Autenticado en Django -->
-                    <div>
-                        {% if user.is_authenticated %}
-                            <div class="flex items-center gap-3">
-                                <a href="{% url 'perfil' %}" class="hidden sm:block text-left hover:opacity-80">
-                                    <span class="text-xs font-bold block text-gray-800">{{ user.first_name|default:user.username }}</span>
-                                    <span class="text-[10px] text-emerald-600 font-semibold">Cliente Activo</span>
-                                </a>
-                                <a href="{% url 'logout' %}" class="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition">
-                                    <i class="fa-solid fa-right-from-bracket"></i>
-                                </a>
-                            </div>
-                        {% else %}
-                            <a href="{% url 'login' %}" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-sm">
-                                <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
-                            </a>
-                        {% endif %}
-                    </div>
+            <!-- Logo Easy Office -->
+            <a href="{% url 'home' %}" class="flex items-center gap-2 group">
+               <div class="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm group-hover:bg-emerald-700 transition">
+                   EO
                 </div>
+                <div class="flex flex-col">
+                    <span class="font-extrabold text-gray-900 tracking-tight leading-none text-lg">Easy<span class="text-emerald-600">Office</span></span>
+                    <span class="text-[10px] text-gray-400 font-medium leading-none">Oficina Virtual</span>
+                </div>
+            </a>
+
+            <!-- Navegación Principal -->
+            <nav class="hidden md:flex items-center gap-6 text-xs font-semibold text-gray-600">
+                <a href="{% url 'pasarela' %}" class="hover:text-emerald-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-store text-gray-400"></i> Planes y Servicios
+                </a>
+            </nav>
+
+            <!-- Menú de Estado de Sesión -->
+            <div class="flex items-center gap-3 text-xs">
+                {% if user.is_authenticated %}
+                    <!-- Badge del Usuario / Rol -->
+                    <a href="{% url 'perfil' %}" class="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-gray-200 hover:border-emerald-500 bg-gray-50 transition">
+                        <div class="w-7 h-7 rounded-full {% if user.is_staff %}bg-blue-600{% else %}bg-emerald-600{% endif %} text-white font-bold flex items-center justify-center text-xs">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="font-bold text-gray-800 leading-tight">{{ user.username }}</span>
+                            <span class="text-[10px] font-semibold {% if user.is_staff %}text-blue-600{% else %}text-emerald-600{% endif %}">
+                                {% if user.is_staff %}Ejecutivo{% else %}Cliente{% endif %}
+                            </span>
+                        </div>
+                    </a>
+
+                    <!-- Botón Perfil -->
+                    <a href="{% url 'perfil' %}" class="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold rounded-lg transition border border-emerald-200">
+                        <i class="fa-solid fa-user text-xs mr-1"></i> Mi Perfil
+                    </a>
+
+                    <!-- Botón Salir -->
+                    <a href="{% url 'logout' %}" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Cerrar Sesión">
+                        <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                    </a>
+
+                {% else %}
+                    <!-- Botones para Usuarios Invitados -->
+                    <a href="{% url 'login' %}" class="px-4 py-2 font-semibold text-gray-700 hover:text-emerald-600 transition">
+                        Iniciar Sesión
+                    </a>
+                    <a href="{% url 'registro' %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition">
+                        Registrarse
+                    </a>
+                {% endif %}
             </div>
         </div>
     </header>
 
-    <!-- Navegación por Módulos -->
-    <div class="bg-white border-b border-gray-200 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex space-x-8">
-                <a href="{% url 'pasarela' %}" class="{% if request.resolver_match.url_name == 'pasarela' %}active-tab{% else %}text-gray-500 hover:text-gray-700{% endif %} py-4 px-1 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-cart-shopping"></i> Pasarela y Contratación
-                </a>
-                <a href="{% if user.is_authenticated %}{% url 'perfil' %}{% else %}{% url 'login' %}{% endif %}" class="{% if request.resolver_match.url_name == 'login' or request.resolver_match.url_name == 'perfil' %}active-tab{% else %}text-gray-500 hover:text-gray-700{% endif %} py-4 px-1 text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-user-lock"></i> Acceso / Mi Perfil
-                </a>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Bloque de Contenido Dinámico -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- ================= CONTENIDO PRINCIPAL ================= -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% block content %}
         {% endblock %}
     </main>
 
-    <script>
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const preloader = document.getElementById('preloader');
-                if(preloader) preloader.classList.add('fade-out');
-            }, 600);
-        });
-    </script>
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+            
+            <!-- Columna 1: Info Empresa -->
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-black text-sm">EO</div>
+                    <span class="font-bold text-white text-base">EasyOffice</span>
+                </div>
+                <p class="text-gray-400 text-[11px] leading-relaxed">
+                    Soluciones integrales de Oficina Virtual y Dirección Tributaria en Chile. Formaliza tu empresa de manera 100% digital.
+                </p>
+            </div>
+
+            <!-- Columna 2: Enlaces Rápidos -->
+            <div>
+                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Navegación</h4>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'pasarela' %}" class="hover:text-emerald-400 transition">Planes Disponibles</a></li>
+                    <li><a href="{% url 'registro' %}" class="hover:text-emerald-400 transition">Crear Cuenta</a></li>
+                    <li><a href="{% url 'login' %}" class="hover:text-emerald-400 transition">Acceso Clientes</a></li>
+                </ul>
+            </div>
+
+            <!-- Columna 3: Servicios -->
+            <div>
+                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Servicios</h4>
+                <ul class="space-y-2">
+                    <li><span class="text-gray-500">Dirección Tributaria SII</span></li>
+                    <li><span class="text-gray-500">Recepción de Correspondencia</span></li>
+                    <li><span class="text-gray-500">Salas de Reunión Providencia</span></li>
+                </ul>
+            </div>
+
+            <!-- Columna 4: Contacto -->
+            <div>
+                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Contacto</h4>
+                <ul class="space-y-2 text-gray-400">
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-emerald-500"></i> Av. Providencia 1234, Santiago</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-envelope text-emerald-500"></i> contacto@easyoffice.cl</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-emerald-500"></i> +56 2 2345 6789</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-800 bg-gray-950 py-4 text-center text-gray-500 text-[11px]">
+            &copy; 2026 Easy Office SpA. Todos los derechos reservados.
+        </div>
+    </footer>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

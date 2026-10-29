@@ -151,3 +151,28 @@ class DocumentoContrato(models.Model):
 
     def __str__(self):
         return f"{self.tipo_documento} - Folio {self.contratacion.folio}"
+    
+import uuid
+
+class DocumentoLegalTech(models.Model):
+    TIPO_CHOICES = [
+        ('poder_simple', 'Poder Simple SII'),
+        ('acuerdo_accionistas', 'Acuerdo de Accionistas'),
+        ('arriendo_vehiculo', 'Contrato Arriendo Vehículo'),
+        ('arriendo_estacionamiento', 'Contrato Arriendo Estacionamiento'),
+    ]
+
+    folio = models.CharField(max_length=20, unique=True, editable=False)
+    usuario = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='documentos_legaltech')
+    tipo_documento = models.CharField(max_length=30, choices=TIPO_CHOICES)
+    fecha_emision = models.DateTimeField(auto_now_add=True)
+    datos_json = models.JSONField(help_text="Parámetros ingresados al generar el PDF")
+
+    def save(self, *args, **kwargs):
+        if not self.folio:
+            # Genera un folio único corto como "LT-2026-A1B2C3"
+            self.folio = f"LT-{timezone.now().year}-{uuid.uuid4().hex[:6].upper()}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.folio} - {self.get_tipo_documento_display()} ({self.usuario.username})"
