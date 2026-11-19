@@ -141,6 +141,7 @@ def perfil_view(request):
 
         context = {
             'es_trabajador': False,
+            'cliente': Cliente, 
             'contrataciones': mis_contrataciones,
             'hoy': hoy
         }
