@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+    color: #1f2937;
+}
+
+.active-tab {
+    border-bottom: 3px solid #10b981;
+    color: #059669;
+    font-weight: 600;
+}
+
+.step-active {
+    background-color: #10b981;
+    color: #ffffff;
+}
+
+.step-inactive {
+    background-color: #e5e7eb;
+    color: #6b7280;
+}
+
+/* Pantalla de Precarga (Preloader) */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #f9fafb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+}
+
+#preloader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.95; }
+    50% { transform: scale(1.05); opacity: 1; }
+}
+
+.preloader-logo {
+    animation: pulse-glow 2s infinite ease-in-out;
+    max-width: 220px;
+    height: auto;
+}
