@@ -28,7 +28,7 @@
     </div>
 
     {% if es_trabajador %}
-<!-- ================= PANEL DEL TRABAJADOR / ADMIN ================= -->
+    <!-- ================= PANEL DEL TRABAJADOR / ADMIN ================= -->
         <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
             
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-4">
@@ -48,7 +48,7 @@
                 <!-- Búsqueda por Texto -->
                 <div class="md:col-span-6 relative">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400"></i>
-                    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por usuario, RUT o Razón Social..." 
+                    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por correo, RUT o Razón Social..." 
                            class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300">
                 </div>
 
@@ -57,7 +57,9 @@
                     <select name="estado" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-gray-300 bg-white">
                         <option value="">Todos los Estados</option>
                         <option value="ACTIVO" {% if filtro_estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
-                        <option value="PENDIENTE" {% if filtro_estado == 'PENDIENTE' %}selected{% endif %}>PENDIENTE</option>
+                        <option value="POR_VENCER" {% if filtro_estado == 'POR_VENCER' %}selected{% endif %}>POR VENCER</option>
+                        <option value="PENDIENTE_PAGO" {% if filtro_estado == 'PENDIENTE_PAGO' %}selected{% endif %}>PENDIENTE DE PAGO</option>
+                        <option value="VENCIDO" {% if filtro_estado == 'VENCIDO' %}selected{% endif %}>VENCIDO</option>
                         <option value="CANCELADO" {% if filtro_estado == 'CANCELADO' %}selected{% endif %}>CANCELADO</option>
                     </select>
                 </div>
@@ -94,8 +96,8 @@
                             <tr class="hover:bg-gray-50 transition {% if c.requiere_renovacion %}bg-amber-50/40{% endif %}">
                                 <td class="p-3 font-bold">#{{ c.id }}</td>
                                 <td class="p-3">
-                                    <span class="font-semibold text-gray-900 block">{{ c.usuario.username }}</span>
-                                    <span class="text-[10px] text-gray-400 block">{{ c.usuario.perfilcliente.rut_empresa|default:"Sin RUT" }}</span>
+                                    <span class="font-semibold text-gray-900 block">{{ c.cliente.razon_social }}</span>
+                                    <span class="text-[10px] text-gray-400 block">{{ c.cliente.rut|default:"Sin RUT" }}</span>
                                 </td>
                                 <td class="p-3 font-medium text-gray-700">{{ c.plan.nombre }}</td>
                                 <td class="p-3 font-bold text-gray-900">${{ c.monto_pagado }}</td>
@@ -113,7 +115,7 @@
                                 <td class="p-3 text-gray-400">{{ c.fecha_inicio|date:"d/m/Y" }}</td>
                                 <td class="p-3 text-center">
                                     <div class="flex justify-center items-center gap-1.5">
-                                        <button onclick="verDetalleContrato('{{ c.id }}', '{{ c.usuario.username }}', '{{ c.usuario.email }}', '{{ c.plan.nombre }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ c.usuario.perfilcliente.rut_empresa|default:"No registrado" }}', '{{ c.usuario.perfilcliente.razon_social|default:"No registrada" }}', '{{ c.usuario.perfilcliente.telefono|default:"No informado" }}')" 
+                                        <button onclick="verDetalleContrato('{{ c.id }}', '{{ c.cliente.razon_social|escapejs }}', '{{ c.cliente.email|escapejs }}', '{{ c.plan.nombre|escapejs }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ c.cliente.rut|default:"No registrado"|escapejs }}', '{{ c.cliente.razon_social|default:"No registrada"|escapejs }}', '{{ c.cliente.telefono|default:"No informado"|escapejs }}')" 
                                                 class="px-2.5 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold rounded border border-blue-200 transition">
                                             <i class="fa-solid fa-eye mr-1"></i> Ver
                                         </button>
@@ -170,7 +172,7 @@
                                 </div>
 
                                 <div class="flex flex-col gap-1 items-end">
-                                    <button onclick="verDetalleContrato('{{ c.id }}', '{{ user.username }}', '{{ user.email }}', '{{ c.plan.nombre }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ user.perfilcliente.rut_empresa|default:"No registrado" }}', '{{ user.perfilcliente.razon_social|default:"No registrada" }}', '{{ user.perfilcliente.telefono|default:"No informado" }}')" 
+                                    <button onclick="verDetalleContrato('{{ c.id }}', '{{ c.cliente.razon_social|escapejs }}', '{{ c.cliente.email|escapejs }}', '{{ c.plan.nombre|escapejs }}', '{{ c.monto_pagado }}', '{{ c.estado }}', '{{ c.fecha_inicio|date:"d/m/Y" }}', '{{ c.cliente.rut|default:"No registrado"|escapejs }}', '{{ c.cliente.razon_social|default:"No registrada"|escapejs }}', '{{ c.cliente.telefono|default:"No informado"|escapejs }}')" 
                                             class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition shadow-sm">
                                         <i class="fa-solid fa-file-lines mr-1"></i> Detalle
                                     </button>
@@ -215,51 +217,55 @@
             </div>
         </div>
     {% endif %}
-</div>
 
-<!-- Módulo LegalTech en Panel Executive / Cliente -->
-<!-- Módulo LegalTech con Modal Interactivo -->
-<div class="mt-8 bg-white p-6 rounded-xl shadow-md border border-gray-100">
-    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-        <span>📄</span> Generador de Documentos LegalTech
-    </h3>
-    <p class="text-sm text-gray-600 mb-6">Genera documentos notariales y contratos corporativos dinámicos de forma inmediata.</p>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Poder Simple -->
-        <button onclick="abrirModalLegalTech('poder_simple', 'Poder Simple SII')" 
-                class="flex flex-col text-left p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition">
-            <span class="font-bold text-blue-900">Poder Simple SII</span>
-            <span class="text-xs text-blue-700 mt-1">Representación para trámites tributarios</span>
-        </button>
+    <!-- Módulo LegalTech con Modal Interactivo -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+            <span>📄</span> Generador de Documentos LegalTech
+        </h3>
+        <p class="text-xs text-gray-600 mb-5">Genera documentos notariales y contratos corporativos dinámicos de forma inmediata.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Poder Simple -->
+            <button onclick="abrirModalLegalTech('poder_simple', 'Poder Simple SII')" 
+                    class="flex flex-col text-left p-4 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition">
+                <span class="font-bold text-blue-900 text-sm">Poder Simple SII</span>
+                <span class="text-xs text-blue-700 mt-1">Representación para trámites tributarios</span>
+            </button>
 
-        <!-- Acuerdo de Accionistas -->
-        <button onclick="abrirModalLegalTech('acuerdo_accionistas', 'Acuerdo de Accionistas')" 
-                class="flex flex-col text-left p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition">
-            <span class="font-bold text-purple-900">Acuerdo Accionistas</span>
-            <span class="text-xs text-purple-700 mt-1">Modificación estatutaria y representación</span>
-        </button>
+            <!-- Acuerdo de Accionistas -->
+            <button onclick="abrirModalLegalTech('acuerdo_accionistas', 'Acuerdo de Accionistas')" 
+                    class="flex flex-col text-left p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition">
+                <span class="font-bold text-purple-900 text-sm">Acuerdo Accionistas</span>
+                <span class="text-xs text-purple-700 mt-1">Modificación estatutaria y representación</span>
+            </button>
 
-        <!-- Arriendo Vehículo -->
-        <button onclick="abrirModalLegalTech('arriendo_vehiculo', 'Arriendo de Vehículo')" 
-                class="flex flex-col text-left p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition">
-            <span class="font-bold text-emerald-900">Arriendo Vehículo</span>
-            <span class="text-xs text-emerald-700 mt-1">Contrato estándar para flota comercial</span>
-        </button>
+            <!-- Arriendo Vehículo -->
+            <button onclick="abrirModalLegalTech('arriendo_vehiculo', 'Arriendo de Vehículo')" 
+                    class="flex flex-col text-left p-4 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition">
+                <span class="font-bold text-emerald-900 text-sm">Arriendo Vehículo</span>
+                <span class="text-xs text-emerald-700 mt-1">Contrato estándar para flota comercial</span>
+            </button>
 
-        <!-- Arriendo Estacionamiento -->
-        <button onclick="abrirModalLegalTech('arriendo_estacionamiento', 'Arriendo de Estacionamiento')" 
-                class="flex flex-col text-left p-4 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200 transition">
-            <span class="font-bold text-amber-900">Estacionamiento</span>
-            <span class="text-xs text-amber-700 mt-1">Contrato de espacio privado</span>
-        </button>
+            <!-- Arriendo Estacionamiento -->
+            <button onclick="abrirModalLegalTech('arriendo_estacionamiento', 'Arriendo de Estacionamiento')" 
+                    class="flex flex-col text-left p-4 bg-amber-50 hover:bg-amber-100 rounded-lg border border-amber-200 transition">
+                <span class="font-bold text-amber-900 text-sm">Estacionamiento</span>
+                <span class="text-xs text-amber-700 mt-1">Contrato de espacio privado</span>
+            </button>
+        </div>
     </div>
 </div>
 
 <!-- Modal Generador LegalTech -->
-<div id="modalLegalTech" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6 relative">
-        <h3 id="modalTitulo" class="text-xl font-bold text-gray-800 mb-4"></h3>
+<div id="modalLegalTech" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
+        <div class="flex justify-between items-center mb-2">
+            <h3 id="modalTitulo" class="text-lg font-bold text-gray-900"></h3>
+            <button type="button" onclick="cerrarModalLegalTech()" class="text-gray-400 hover:text-gray-600 p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
         <p class="text-xs text-gray-500 mb-4">Completa los datos requeridos para compilar el documento legal en tiempo real.</p>
 
         <form id="formLegalTech" method="GET" target="_blank" action="">
@@ -268,170 +274,16 @@
             </div>
 
             <div class="mt-6 flex justify-end gap-3 border-t pt-4">
-                <button type="button" onclick="cerrarModalLegalTech()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm transition">
+                <button type="button" onclick="cerrarModalLegalTech()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-xs font-bold transition">
                     Cancelar
                 </button>
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition flex items-center gap-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition flex items-center gap-2">
                     <span>📥</span> Descargar PDF
                 </button>
             </div>
         </form>
     </div>
 </div>
-
-<script>
-function abrirModalLegalTech(tipoDoc, titulo) {
-    const modal = document.getElementById('modalLegalTech');
-    const form = document.getElementById('formLegalTech');
-    const tituloEl = document.getElementById('modalTitulo');
-    const camposContainer = document.getElementById('camposDinamicos');
-
-    tituloEl.innerText = titulo;
-    form.action = `/documentos/legaltech/${tipoDoc}/`;
-    camposContainer.innerHTML = '';
-
-    let htmlCampos = '';
-
-    if (tipoDoc === 'poder_simple') {
-        htmlCampos = `
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Razón Social Empresa</label>
-                <input type="text" name="empresa_nombre" value="{{ user.get_full_name|default:user.username }}" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Empresa</label>
-                <input type="text" name="empresa_rut" value="77.123.456-7" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Rep. Legal</label>
-                <input type="text" name="rep_nombre" value="{{ user.get_full_name }}" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Rep. Legal</label>
-                <input type="text" name="rep_rut" value="12.345.678-9" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Apoderado SII</label>
-                <input type="text" name="apoderado_nombre" value="PEDRO SOTO MENDOZA" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Apoderado SII</label>
-                <input type="text" name="apoderado_rut" value="15.987.654-3" class="w-full border p-2 rounded text-sm" required>
-            </div>
-        `;
-    } else if (tipoDoc === 'acuerdo_accionistas') {
-        htmlCampos = `
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Sociedad</label>
-                <input type="text" name="empresa_nombre" value="{{ user.get_full_name|default:user.username }}" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Sociedad</label>
-                <input type="text" name="empresa_rut" value="77.123.456-7" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Accionista Principal</label>
-                <input type="text" name="accionista_1" value="{{ user.get_full_name }}" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Accionista Principal</label>
-                <input type="text" name="accionista_1_rut" value="12.345.678-9" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Segundo Accionista</label>
-                <input type="text" name="accionista_2" value="CARLOS GÓMEZ SILVA" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Segundo Accionista</label>
-                <input type="text" name="accionista_2_rut" value="14.567.890-1" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Materia del Acuerdo</label>
-                <input type="text" name="materia" value="Aumento de Capital y Modificación de Representación Legal" class="w-full border p-2 rounded text-sm" required>
-            </div>
-        `;
-    } else if (tipoDoc === 'arriendo_vehiculo') {
-        htmlCampos = `
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendador</label>
-                <input type="text" name="arrendador" value="EASY OFFICE RENTALS SpA" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendador</label>
-                <input type="text" name="arrendador_rut" value="77.999.888-1" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendatario</label>
-                <input type="text" name="arrendatario" value="{{ user.get_full_name|default:user.username }}" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendatario</label>
-                <input type="text" name="arrendatario_rut" value="76.543.210-K" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Marca</label>
-                    <input type="text" name="marca" value="TOYOTA" class="w-full border p-2 rounded text-sm" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Modelo</label>
-                    <input type="text" name="modelo" value="YARIS" class="w-full border p-2 rounded text-sm" required>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Patente</label>
-                    <input type="text" name="patente" value="ABCD-12" class="w-full border p-2 rounded text-sm" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Monto Mensual ($)</label>
-                    <input type="text" name="monto" value="350.000" class="w-full border p-2 rounded text-sm" required>
-                </div>
-            </div>
-        `;
-    } else if (tipoDoc === 'arriendo_estacionamiento') {
-        htmlCampos = `
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendador</label>
-                <input type="text" name="arrendador" value="EDIFICIO EASY OFFICE" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendador</label>
-                <input type="text" name="arrendador_rut" value="77.888.999-0" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendatario</label>
-                <input type="text" name="arrendatario" value="{{ user.get_full_name|default:user.username }}" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendatario</label>
-                <input type="text" name="arrendatario_rut" value="76.543.210-K" class="w-full border p-2 rounded text-sm" required>
-            </div>
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">N° Estacionamiento</label>
-                    <input type="text" name="nro_estacionamiento" value="E-12" class="w-full border p-2 rounded text-sm" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">Monto Mensual ($)</label>
-                    <input type="text" name="monto" value="80.000" class="w-full border p-2 rounded text-sm" required>
-                </div>
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1">Dirección Inmueble</label>
-                <input type="text" name="direccion" value="Av. Apoquindo 4500, Las Condes, Santiago" class="w-full border p-2 rounded text-sm" required>
-            </div>
-        `;
-    }
-
-    camposContainer.innerHTML = htmlCampos;
-    modal.classList.remove('hidden');
-}
-
-function cerrarModalLegalTech() {
-    document.getElementById('modalLegalTech').classList.add('hidden');
-}
-</script>
 
 <!-- ================= MODAL DE DETALLE DE CONTRATO ================= -->
 <div id="modal-detalle-contrato" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -487,7 +339,7 @@ function cerrarModalLegalTech() {
 
             <!-- Meta Información -->
             <div class="flex justify-between text-gray-400 text-[11px] px-1">
-                <span><i class="fa-regular fa-calendar mr-1"></i> Fecha Inocación: <strong id="modal-fecha" class="text-gray-600">-</strong></span>
+                <span><i class="fa-regular fa-calendar mr-1"></i> Fecha Iniciación: <strong id="modal-fecha" class="text-gray-600">-</strong></span>
                 <span><i class="fa-solid fa-shield-halved mr-1 text-emerald-600"></i> Firma Digital Validada</span>
             </div>
         </div>
@@ -511,25 +363,186 @@ function cerrarModalLegalTech() {
         document.getElementById('modal-contrato-id').innerText = `Contrato #${id}`;
         document.getElementById('modal-plan-nombre').innerText = plan;
         document.getElementById('modal-monto').innerText = `$${monto} CLP`;
-        document.getElementById('modal-usuario').innerText = usuario;
-        document.getElementById('modal-email').innerText = email;
-        document.getElementById('modal-fecha').innerText = fecha;
-        document.getElementById('modal-rut').innerText = rut;
-        document.getElementById('modal-razon').innerText = razon;
-
-        const estadoBadge = document.getElementById('modal-estado');
-        estadoBadge.innerText = estado;
+        document.getElementById('modal-usuario').innerText = usuario || 'No informado';
+        document.getElementById('modal-email').innerText = email || '-';
+        
+        const estadoEl = document.getElementById('modal-estado');
+        estadoEl.innerText = estado;
+        estadoEl.className = 'px-2 py-0.5 rounded font-bold text-[10px] inline-block ';
         if (estado === 'ACTIVO') {
-            estadoBadge.className = "px-2 py-0.5 rounded font-bold text-[10px] inline-block bg-emerald-100 text-emerald-800";
+            estadoEl.className += 'bg-emerald-100 text-emerald-800';
+        } else if (estado === 'POR_VENCER' || estado === 'PENDIENTE_PAGO' || estado === 'PENDIENTE_FIRMA') {
+            estadoEl.className += 'bg-amber-100 text-amber-800';
         } else {
-            estadoBadge.className = "px-2 py-0.5 rounded font-bold text-[10px] inline-block bg-amber-100 text-amber-800";
+            estadoEl.className += 'bg-red-100 text-red-800';
         }
+
+        document.getElementById('modal-rut').innerText = rut || 'No registrado';
+        document.getElementById('modal-razon').innerText = razon || 'No registrada';
+        document.getElementById('modal-fecha').innerText = fecha || '-';
 
         document.getElementById('modal-detalle-contrato').classList.remove('hidden');
     }
 
     function cerrarModalContrato() {
         document.getElementById('modal-detalle-contrato').classList.add('hidden');
+    }
+
+    function abrirModalLegalTech(tipoDoc, titulo) {
+        const modal = document.getElementById('modalLegalTech');
+        const form = document.getElementById('formLegalTech');
+        const tituloEl = document.getElementById('modalTitulo');
+        const camposContainer = document.getElementById('camposDinamicos');
+
+        const empresaNombreDefault = "{{ cliente.razon_social|default:user.get_full_name|default:user.username|escapejs }}";
+        const empresaRutDefault = "{{ cliente.rut|default:'77.452.890-3'|escapejs }}";
+        const repNombreDefault = "{{ cliente.rep_legal_nombre|default:user.get_full_name|default:user.username|escapejs }}";
+        const repRutDefault = "{{ cliente.rep_legal_rut|default:'16.890.234-5'|escapejs }}";
+
+        tituloEl.innerText = titulo;
+        form.action = `/documentos/legaltech/${tipoDoc}/`;
+        camposContainer.innerHTML = '';
+
+        let htmlCampos = '';
+
+        if (tipoDoc === 'poder_simple') {
+            htmlCampos = `
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Razón Social Empresa</label>
+                    <input type="text" name="empresa_nombre" value="${empresaNombreDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Empresa</label>
+                    <input type="text" name="empresa_rut" value="${empresaRutDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Rep. Legal</label>
+                    <input type="text" name="rep_nombre" value="${repNombreDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Rep. Legal</label>
+                    <input type="text" name="rep_rut" value="${repRutDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Apoderado SII</label>
+                    <input type="text" name="apoderado_nombre" value="PEDRO SOTO MENDOZA" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Apoderado SII</label>
+                    <input type="text" name="apoderado_rut" value="15.987.654-3" class="w-full border p-2 rounded text-sm" required>
+                </div>
+            `;
+        } else if (tipoDoc === 'acuerdo_accionistas') {
+            htmlCampos = `
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Sociedad</label>
+                    <input type="text" name="empresa_nombre" value="${empresaNombreDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Sociedad</label>
+                    <input type="text" name="empresa_rut" value="${empresaRutDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Accionista Principal</label>
+                    <input type="text" name="accionista_1" value="${repNombreDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Accionista Principal</label>
+                    <input type="text" name="accionista_1_rut" value="${repRutDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Segundo Accionista</label>
+                    <input type="text" name="accionista_2" value="CARLOS GÓMEZ SILVA" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Segundo Accionista</label>
+                    <input type="text" name="accionista_2_rut" value="14.567.890-1" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Materia del Acuerdo</label>
+                    <input type="text" name="materia" value="Aumento de Capital y Modificación de Representación Legal" class="w-full border p-2 rounded text-sm" required>
+                </div>
+            `;
+        } else if (tipoDoc === 'arriendo_vehiculo') {
+            htmlCampos = `
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendador</label>
+                    <input type="text" name="arrendador" value="EASY OFFICE RENTALS SpA" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendador</label>
+                    <input type="text" name="arrendador_rut" value="77.999.888-1" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendatario</label>
+                    <input type="text" name="arrendatario" value="${empresaNombreDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendatario</label>
+                    <input type="text" name="arrendatario_rut" value="${empresaRutDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Marca</label>
+                        <input type="text" name="marca" value="TOYOTA" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Modelo</label>
+                        <input type="text" name="modelo" value="YARIS" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Patente</label>
+                        <input type="text" name="patente" value="ABCD-12" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Monto Mensual ($)</label>
+                        <input type="text" name="monto" value="350.000" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                </div>
+            `;
+        } else if (tipoDoc === 'arriendo_estacionamiento') {
+            htmlCampos = `
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendador</label>
+                    <input type="text" name="arrendador" value="EDIFICIO EASY OFFICE" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendador</label>
+                    <input type="text" name="arrendador_rut" value="77.888.999-0" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Arrendatario</label>
+                    <input type="text" name="arrendatario" value="${empresaNombreDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Arrendatario</label>
+                    <input type="text" name="arrendatario_rut" value="${empresaRutDefault}" class="w-full border p-2 rounded text-sm" required>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">N° Estacionamiento</label>
+                        <input type="text" name="nro_estacionamiento" value="E-12" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Monto Mensual ($)</label>
+                        <input type="text" name="monto" value="80.000" class="w-full border p-2 rounded text-sm" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-1">Dirección Inmueble</label>
+                    <input type="text" name="direccion" value="Av. Apoquindo 4500, Las Condes, Santiago" class="w-full border p-2 rounded text-sm" required>
+                </div>
+            `;
+        }
+
+        camposContainer.innerHTML = htmlCampos;
+        modal.classList.remove('hidden');
+    }
+
+    function cerrarModalLegalTech() {
+        document.getElementById('modalLegalTech').classList.add('hidden');
     }
 </script>
 {% endblock %}
