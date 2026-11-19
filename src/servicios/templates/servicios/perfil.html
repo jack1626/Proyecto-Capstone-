@@ -207,10 +207,10 @@
                     <i class="fa-solid fa-building text-emerald-600"></i> Datos de la Empresa
                 </h2>
                 <div class="text-xs space-y-2 text-gray-600">
-                    <p><strong class="text-gray-800">RUT Empresa:</strong> {{ user.perfilcliente.rut_empresa|default:"No registrado" }}</p>
-                    <p><strong class="text-gray-800">Razón Social:</strong> {{ user.perfilcliente.razon_social|default:"No registrada" }}</p>
-                    <p><strong class="text-gray-800">Teléfono:</strong> {{ user.perfilcliente.telefono|default:"No registrado" }}</p>
-                    <p><strong class="text-gray-800">Dirección:</strong> {{ user.perfilcliente.direccion|default:"Dirección Tributaria Providencia #1234" }}</p>
+                    <p><strong class="text-gray-800">RUT Empresa:</strong> {{ cliente.rut|default:"No registrado" }}</p>
+                    <p><strong class="text-gray-800">Razón Social:</strong> {{ cliente.razon_social|default:"No registrada" }}</p>
+                    <p><strong class="text-gray-800">Teléfono:</strong> {{ cliente.telefono|default:"No registrado" }}</p>
+                    <p><strong class="text-gray-800">Dirección:</strong> {{ cliente.direccion|default:"Dirección Tributaria Providencia #1234" }}</p>
                 </div>
             </div>
         </div>
