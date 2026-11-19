@@ -131,7 +131,14 @@ def perfil_view(request):
             'filtro_estado': filtro_estado,
             'hoy': hoy
         }
+        
     else:
+
+        cliente = Cliente.objects.filter(email=request.user.email).first()
+        mis_contrataciones = Contratacion.objects.filter(
+            cliente__email=request.user.email
+        ).select_related('plan').order_by('-fecha_inicio')
+        
         mis_contrataciones = Contratacion.objects.filter(
             cliente__email=request.user.email
         ).select_related('plan').order_by('-fecha_inicio')
@@ -141,7 +148,7 @@ def perfil_view(request):
 
         context = {
             'es_trabajador': False,
-            'cliente': Cliente, 
+            'cliente': cliente, 
             'contrataciones': mis_contrataciones,
             'hoy': hoy
         }
