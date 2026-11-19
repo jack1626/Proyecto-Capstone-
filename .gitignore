@@ -220,3 +220,5 @@ __marimo__/
 # Variables de entorno y contraseñas
 .env
 src/.env
+
+staticfiles/
