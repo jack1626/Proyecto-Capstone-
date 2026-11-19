@@ -13,49 +13,67 @@
         {% csrf_token %}
 
         {% if form.errors %}
-            <div class="bg-red-50 text-red-700 p-3 rounded-lg text-xs space-y-1">
+            <div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg text-xs space-y-1">
                 <p class="font-bold">Por favor corrige los siguientes errores:</p>
                 {% for field in form %}
                     {% for error in field.errors %}
                         <p>• {{ field.label }}: {{ error }}</p>
                     {% endfor %}
                 {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <p>• {{ error }}</p>
+                {% endfor %}
             </div>
         {% endif %}
 
         <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre de Usuario</label>
-            <input type="text" name="username" required class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre de Usuario *</label>
+            <input type="text" name="username" value="{{ form.username.value|default:'' }}" required placeholder="Ej: juan.perez"
+                   class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Nombre Completo</label>
-            <input type="text" name="first_name" required class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Razón Social o Nombre Completo *</label>
+            <input type="text" name="razon_social" value="{{ form.razon_social.value|default:'' }}" required placeholder="Ej: Inversiones Andes SpA"
+                   class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Correo Electrónico</label>
-            <input type="email" name="email" required class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Empresa / Persona *</label>
+            <input type="text" name="rut" value="{{ form.rut.value|default:'' }}" required placeholder="76.123.456-7"
+                   class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">RUT Empresa / Persona</label>
-            <input type="text" name="rut_empresa" required placeholder="12.345.678-9" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-        </div>
-
-        <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Razón Social (Opcional)</label>
-            <input type="text" name="razon_social" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Correo Electrónico *</label>
+            <input type="email" name="email" value="{{ form.email.value|default:'' }}" required placeholder="contacto@empresa.cl"
+                   class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div>
             <label class="block text-xs font-semibold text-gray-700 mb-1">Teléfono</label>
-            <input type="text" name="telefono" placeholder="+56 9 1234 5678" class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" placeholder="+56 9 1234 5678"
+                   class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div>
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Contraseña</label>
-            <input type="password" name="password" required class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <label class="block text-xs font-semibold text-gray-700 mb-1">Dirección Tributaria / Comercial</label>
+            <input type="text" name="direccion" value="{{ form.direccion.value|default:'' }}" placeholder="Av. Providencia 1208, Oficina 405"
+                   class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Contraseña *</label>
+                <input type="password" name="password" required placeholder="••••••••"
+                       class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 mb-1">Confirmar Contraseña *</label>
+                <input type="password" name="password_confirm" required placeholder="••••••••"
+                       class="w-full border border-gray-300 p-2.5 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
         </div>
 
         <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-sm transition shadow-sm">

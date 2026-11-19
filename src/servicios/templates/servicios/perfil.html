@@ -102,15 +102,19 @@
                                 <td class="p-3 font-medium text-gray-700">{{ c.plan.nombre }}</td>
                                 <td class="p-3 font-bold text-gray-900">${{ c.monto_pagado }}</td>
                                 <td class="p-3">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold border {{ c.estado_alerta_color }}">
-                                        {% if c.dias_para_vencer < 0 %}
-                                            VENCIDO (hace {{ c.dias_para_vencer|add:"-1" }} días)
-                                        {% elif c.dias_para_vencer <= 30 %}
-                                            VENCE EN {{ c.dias_para_vencer }} DÍAS
-                                        {% else %}
+                                    {% if c.dias_restantes < 0 %}
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold border bg-red-100 text-red-800 border-red-200">
+                                            VENCIDO
+                                        </span>
+                                    {% elif c.dias_restantes <= 30 %}
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold border bg-amber-100 text-amber-800 border-amber-200">
+                                            VENCE EN {{ c.dias_restantes }} DÍAS
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-1 rounded text-[10px] font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
                                             {{ c.estado }} (Vence {{ c.fecha_vencimiento|date:"d/m/Y" }})
-                                        {% endif %}
-                                    </span>
+                                        </span>
+                                    {% endif %}
                                 </td>
                                 <td class="p-3 text-gray-400">{{ c.fecha_inicio|date:"d/m/Y" }}</td>
                                 <td class="p-3 text-center">
@@ -157,15 +161,19 @@
                                 <div class="space-y-1">
                                     <div class="flex items-center gap-2 font-bold">
                                         <span class="text-gray-900 text-sm">{{ c.plan.nombre }}</span>
-                                        <span class="text-[10px] px-2 py-0.5 rounded border font-bold {{ c.estado_alerta_color }}">
-                                            {% if c.dias_para_vencer < 0 %}
-                                                VENCIDO (hace {{ c.dias_para_vencer|add:"-1" }} días)
-                                            {% elif c.dias_para_vencer <= 30 %}
-                                                VENCE EN {{ c.dias_para_vencer }} DÍAS
-                                            {% else %}
+                                        {% if c.dias_restantes < 0 %}
+                                            <span class="text-[10px] px-2 py-0.5 rounded border font-bold bg-red-100 text-red-800 border-red-200">
+                                                VENCIDO
+                                            </span>
+                                        {% elif c.dias_restantes <= 30 %}
+                                            <span class="text-[10px] px-2 py-0.5 rounded border font-bold bg-amber-100 text-amber-800 border-amber-200">
+                                                VENCE EN {{ c.dias_restantes }} DÍAS
+                                            </span>
+                                        {% else %}
+                                            <span class="text-[10px] px-2 py-0.5 rounded border font-bold bg-emerald-100 text-emerald-800 border-emerald-200">
                                                 {{ c.estado }}
-                                            {% endif %}
-                                        </span>
+                                            </span>
+                                        {% endif %}
                                     </div>
                                     <p class="text-gray-600">Monto: <b>${{ c.monto_pagado }} CLP</b></p>
                                     <p class="text-gray-400 text-[10px]">Contratado: {{ c.fecha_inicio|date:"d/m/Y" }} | Vence: {{ c.fecha_vencimiento|date:"d/m/Y" }}</p>
@@ -346,9 +354,9 @@
 
         <!-- Footer Modal -->
         <div class="pt-2 flex gap-3">
-            <button onclick="window.print()" class="w-1/2 py-2.5 border border-gray-300 hover:bg-gray-50 rounded-xl font-bold text-xs text-gray-700 transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-print"></i> Imprimir Comprobante
-            </button>
+            <a id="modal-btn-pdf" href="#" target="_blank" class="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                <i class="fa-solid fa-file-pdf"></i> Descargar PDF Oficial
+            </a>
             <button onclick="cerrarModalContrato()" class="w-1/2 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-xs transition shadow-md">
                 Cerrar
             </button>
@@ -380,6 +388,9 @@
         document.getElementById('modal-rut').innerText = rut || 'No registrado';
         document.getElementById('modal-razon').innerText = razon || 'No registrada';
         document.getElementById('modal-fecha').innerText = fecha || '-';
+
+        const urlPdfBase = "{% url 'descargar_comprobante_pdf' 0 %}";
+        document.getElementById('modal-btn-pdf').href = urlPdfBase.replace('/0/', `/${id}/`);
 
         document.getElementById('modal-detalle-contrato').classList.remove('hidden');
     }

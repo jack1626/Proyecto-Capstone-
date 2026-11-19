@@ -1,36 +1,49 @@
 from django import forms
-from .models import Cliente, Contratacion
+from django.contrib.auth.models import User
+from .models import Cliente
+
 
 class RegistroClienteForm(forms.ModelForm):
+    username = forms.CharField(
+        max_length=150,
+        label="Nombre de Usuario",
+        widget=forms.TextInput(attrs={'placeholder': 'Ej: juan.perez'})
+    )
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(attrs={'placeholder': '••••••••'})
+    )
+    password_confirm = forms.CharField(
+        label="Confirmar Contraseña",
+        widget=forms.PasswordInput(attrs={'placeholder': '••••••••'})
+    )
+
     class Meta:
         model = Cliente
         fields = [
-            'tipo_persona',
             'rut',
             'razon_social',
-            'nombre_fantasia',
-            'giro',
             'email',
             'telefono',
             'direccion',
-            'comuna',
-            'region',
-            'rep_legal_nombre',
-            'rep_legal_rut',
-            'rep_legal_email',
         ]
-        widgets = {
-            'tipo_persona': forms.Select(attrs={'class': 'form-select'}),
-            'rut': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 76.123.456-7'}),
-            'razon_social': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre o Razón Social'}),
-            'nombre_fantasia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de Fantasía'}),
-            'giro': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Giro comercial'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'correo@empresa.cl'}),
-            'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+56 9 1234 5678'}),
-            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Calle, número, oficina'}),
-            'comuna': forms.TextInput(attrs={'class': 'form-control'}),
-            'region': forms.TextInput(attrs={'class': 'form-control'}),
-            'rep_legal_nombre': forms.TextInput(attrs={'class': 'form-control'}),
-            'rep_legal_rut': forms.TextInput(attrs={'class': 'form-control'}),
-            'rep_legal_email': forms.EmailInput(attrs={'class': 'form-control'}),
-        }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nombre de usuario ya está en uso.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists() or Cliente.objects.filter(email=email).exists():
+            raise forms.ValidationError("Ya existe una cuenta registrada con este correo electrónico.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
+        if password and password_confirm and password != password_confirm:
+            self.add_error('password_confirm', "Las contraseñas no coinciden.")
+        return cleaned_data
