@@ -2,6 +2,8 @@ import json
 import io
 from datetime import date
 
+from django.contrib.auth.models import User, Group
+from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout as django_logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
@@ -177,7 +179,11 @@ def registro_view(request):
                 )
                 grupo_cliente, _ = Group.objects.get_or_create(name='Cliente')
                 user.groups.add(grupo_cliente)
-                form.save()
+
+                cliente = form.save(commit=False)
+                cliente.comuna = cliente.comuna or 'Santiago'
+                cliente.region = cliente.region or 'Metropolitana'
+                cliente.save()
 
             login(request, user)
             return redirect('perfil')
