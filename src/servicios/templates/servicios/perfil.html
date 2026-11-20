@@ -226,7 +226,7 @@
         </div>
     {% endif %}
 
-    <!-- Módulo LegalTech con Modal Interactivo -->
+<!-- Módulo LegalTech con Modal Interactivo -->
     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
         <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
             <span>📄</span> Generador de Documentos LegalTech
@@ -261,6 +261,58 @@
                 <span class="font-bold text-amber-900 text-sm">Estacionamiento</span>
                 <span class="text-xs text-amber-700 mt-1">Contrato de espacio privado</span>
             </button>
+        </div>
+
+        <!-- Historial de Documentos Emitidos -->
+        <div class="mt-6 pt-5 border-t border-gray-100">
+            <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+                {% if es_trabajador %}Últimos Documentos LegalTech Emitidos{% else %}Mis Documentos LegalTech Emitidos{% endif %}
+            </h4>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-gray-600">
+                    <thead class="bg-gray-50 text-gray-700 font-bold uppercase border-b">
+                        <tr>
+                            <th class="p-2.5">Folio FEA</th>
+                            <th class="p-2.5">Documento</th>
+                            {% if es_trabajador %}<th class="p-2.5">Emitido por</th>{% endif %}
+                            <th class="p-2.5">Fecha Emisión</th>
+                            <th class="p-2.5">Estado</th>
+                            <th class="p-2.5 text-center">Validación Pública</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for d in documentos_legaltech %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-2.5 font-mono font-bold text-blue-700">{{ d.folio }}</td>
+                            <td class="p-2.5 font-semibold text-gray-900">{{ d.get_tipo_documento_display }}</td>
+                            {% if es_trabajador %}
+                            <td class="p-2.5 text-gray-500">{{ d.usuario.username }}</td>
+                            {% endif %}
+                            <td class="p-2.5 text-gray-400">{{ d.fecha_emision|date:"d/m/Y H:i" }}</td>
+                            <td class="p-2.5">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    {{ d.get_estado_firma_display }}
+                                </span>
+                            </td>
+                            <td class="p-2.5 text-center">
+                                <a href="{% url 'validar_folio' d.folio %}" target="_blank"
+                                   class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded text-[11px] font-bold transition">
+                                    <i class="fa-solid fa-shield-check"></i> Verificar Folio
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="p-4 text-center text-gray-400">
+                                Aún no se han emitido documentos LegalTech. Selecciona una plantilla arriba para generar el primero.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

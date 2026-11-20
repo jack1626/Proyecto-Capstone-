@@ -2,6 +2,7 @@ import json
 import io
 from datetime import date
 
+
 from django.contrib.auth.models import User, Group
 from django.db import transaction
 from django.shortcuts import render, redirect, get_object_or_404
@@ -13,6 +14,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse, FileResponse, Http404
 from django.utils import timezone
 from django.db.models import Q
+from django.urls import reverse
 
 # Para la generación del PDF
 from reportlab.lib.pagesizes import letter
@@ -125,10 +127,13 @@ def perfil_view(request):
         for c in contrataciones:
             c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
 
+        documentos_legaltech = DocumentoLegalTech.objects.all().select_related('usuario').order_by('-fecha_emision')[:20]
+
         context = {
             'es_trabajador': True,
             'contrataciones': contrataciones,
             'clientes': Cliente.objects.all(),
+            'documentos_legaltech': documentos_legaltech,
             'query': query,
             'filtro_estado': filtro_estado,
             'hoy': hoy
@@ -148,10 +153,15 @@ def perfil_view(request):
         for c in mis_contrataciones:
             c.dias_restantes = (c.fecha_vencimiento - hoy).days if c.fecha_vencimiento else 0
 
+        documentos_legaltech = DocumentoLegalTech.objects.filter(
+            usuario=request.user
+        ).order_by('-fecha_emision')
+
         context = {
             'es_trabajador': False,
-            'cliente': cliente, 
+            'cliente': cliente,
             'contrataciones': mis_contrataciones,
+            'documentos_legaltech': documentos_legaltech,
             'hoy': hoy
         }
 
@@ -585,7 +595,8 @@ def generar_documento_legaltech_pdf(request, tipo_doc):
 
   # --- SELLO Y CERTIFICACIÓN FEA + NOTARÍA (PIE DE PÁGINA) ---
     story.append(Spacer(1, 20))
-    
+    url_validacion = request.build_absolute_uri(reverse('validar_folio', args=[doc_registro.folio]))
+
     sello_fea_html = f"""
     <hr/>
     <br/>
@@ -594,17 +605,6 @@ def generar_documento_legaltech_pdf(request, tipo_doc):
     <b>Hash FEA (SHA-256):</b> <font face="Courier">{doc_registro.hash_firma}</font><br/>
     <b>Coordinación Notarial:</b> {doc_registro.notaria_asignada}<br/>
     <b>Firmante:</b> {request.user.get_full_name() or request.user.username} ({request.user.email})<br/>
-    <b>Verificación en Línea:</b> http://easycap/validar/{doc_registro.folio}
+    <b>Verificación en Línea:</b> {url_validacion}
     """
     story.append(Paragraph(sello_fea_html, style_folio))
-
-    doc.build(story)
-    buffer.seek(0)
-    return FileResponse(buffer, as_attachment=True, filename=f"{doc_registro.folio}_{tipo_doc}_FIRMADO.pdf")
-
-def validar_folio_view(request, folio):
-    """
-    Permite a terceros verificar la autenticidad de un documento LegalTech.
-    """
-    documento = get_object_or_404(DocumentoLegalTech, folio=folio)
-    return render(request, 'servicios/validar_folio.html', {'doc': documento})
