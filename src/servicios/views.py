@@ -23,7 +23,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_RIGHT
 from .forms import RegistroClienteForm
-from .models import Plan, Contratacion, Cliente
+from .models import Plan, Contratacion, Cliente, DocumentoLegalTech
 
 
 # ==========================================
@@ -411,8 +411,7 @@ def descargar_comprobante_pdf(request, contratacion_id):
 # 6. GENERADOR DE DOCUMENTOS LEGALTECH
 # ==========================================
 
-# Asegúrate de importar el modelo al inicio del views.py:
-from .models import Plan, Contratacion, Cliente, DocumentoLegalTech
+
 
 @login_required
 def generar_documento_legaltech_pdf(request, tipo_doc):
@@ -608,3 +607,14 @@ def generar_documento_legaltech_pdf(request, tipo_doc):
     <b>Verificación en Línea:</b> {url_validacion}
     """
     story.append(Paragraph(sello_fea_html, style_folio))
+    doc.build(story)
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename=f"{doc_registro.folio}_{tipo_doc}_FIRMADO.pdf")
+
+
+def validar_folio_view(request, folio):
+    """
+    Permite a terceros verificar la autenticidad de un documento LegalTech.
+    """
+    documento = get_object_or_404(DocumentoLegalTech, folio=folio)
+    return render(request, 'servicios/validar_folio.html', {'doc': documento})
