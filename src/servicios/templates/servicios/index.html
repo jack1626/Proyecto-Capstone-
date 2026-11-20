@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,28 +13,48 @@
         .step-inactive { background-color: #E5E7EB; color: #4B5563; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex flex-col font-sans text-gray-800">
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans text-gray-800 antialiased">
+
+    <!-- ================= BARRA SUPERIOR INFORMATIVA ================= -->
+    <div class="bg-slate-950 text-slate-300 text-[11px] py-2 px-4 border-b border-slate-800 hidden sm:block">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-emerald-400"></i> Acreditación Tributaria SII Garantizada</span>
+                <span class="text-slate-600">|</span>
+                <span class="flex items-center gap-1.5"><i class="fa-solid fa-file-signature text-emerald-400"></i> Contratos con Firma Electrónica Avanzada (FEA)</span>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span><i class="fa-solid fa-location-dot text-emerald-400 mr-1"></i> Providencia & Las Condes, Santiago</span>
+            </div>
+        </div>
+    </div>
 
     <!-- ================= NAVBAR DINÁMICA ================= -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+    <header class="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
             <!-- Logo Easy Office -->
-            <a href="{% url 'home' %}" class="flex items-center gap-2 group">
-               <div class="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm group-hover:bg-emerald-700 transition">
+            <a href="{% url 'home' %}" class="flex items-center gap-2.5 group">
+               <div class="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm group-hover:shadow-emerald-500/30 transition">
                    EO
                 </div>
                 <div class="flex flex-col">
                     <span class="font-extrabold text-gray-900 tracking-tight leading-none text-lg">Easy<span class="text-emerald-600">Office</span></span>
-                    <span class="text-[10px] text-gray-400 font-medium leading-none">Oficina Virtual</span>
+                    <span class="text-[10px] text-gray-400 font-semibold leading-none mt-0.5">Oficina Virtual & LegalTech</span>
                 </div>
             </a>
 
             <!-- Navegación Principal -->
-            <nav class="hidden md:flex items-center gap-6 text-xs font-semibold text-gray-600">
-                <a href="{% url 'pasarela' %}" class="hover:text-emerald-600 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-store text-gray-400"></i> Planes y Servicios
+            <nav class="hidden lg:flex items-center gap-7 text-xs font-semibold text-gray-600">
+                <a href="{% url 'home' %}#beneficios" class="hover:text-emerald-600 transition">Beneficios</a>
+                <a href="{% url 'home' %}#como-funciona" class="hover:text-emerald-600 transition">Cómo Funciona</a>
+                <a href="{% url 'home' %}#legaltech" class="hover:text-emerald-600 transition flex items-center gap-1">
+                    LegalTech <span class="bg-blue-100 text-blue-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded">FEA</span>
                 </a>
+                <a href="{% url 'pasarela' %}" class="hover:text-emerald-600 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-store text-emerald-600"></i> Planes y Tarifas
+                </a>
+                <a href="{% url 'home' %}#faq" class="hover:text-emerald-600 transition">Preguntas Frecuentes</a>
             </nav>
 
             <!-- Menú de Estado de Sesión -->
@@ -54,8 +74,8 @@
                     </a>
 
                     <!-- Botón Perfil -->
-                    <a href="{% url 'perfil' %}" class="px-3 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold rounded-lg transition border border-emerald-200">
-                        <i class="fa-solid fa-user text-xs mr-1"></i> Mi Perfil
+                    <a href="{% url 'perfil' %}" class="px-3.5 py-2 bg-emerald-600 text-white hover:bg-emerald-700 font-bold rounded-lg transition shadow-sm">
+                        <i class="fa-solid fa-gauge-high text-xs mr-1"></i> Mi Panel
                     </a>
 
                     <!-- Botón Salir -->
@@ -65,11 +85,11 @@
 
                 {% else %}
                     <!-- Botones para Usuarios Invitados -->
-                    <a href="{% url 'login' %}" class="px-4 py-2 font-semibold text-gray-700 hover:text-emerald-600 transition">
+                    <a href="{% url 'login' %}" class="px-4 py-2 font-bold text-gray-700 hover:text-emerald-600 transition">
                         Iniciar Sesión
                     </a>
                     <a href="{% url 'registro' %}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition">
-                        Registrarse
+                        Crear Cuenta
                     </a>
                 {% endif %}
             </div>
@@ -84,7 +104,7 @@
 
     <!-- ================= FOOTER ================= -->
     <footer class="bg-gray-900 text-gray-400 text-xs border-t border-gray-800 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
             
             <!-- Columna 1: Info Empresa -->
             <div class="space-y-3">
@@ -93,37 +113,45 @@
                     <span class="font-bold text-white text-base">EasyOffice</span>
                 </div>
                 <p class="text-gray-400 text-[11px] leading-relaxed">
-                    Soluciones integrales de Oficina Virtual y Dirección Tributaria en Chile. Formaliza tu empresa de manera 100% digital.
+                    Soluciones integrales de Oficina Virtual, Dirección Tributaria y Documentación LegalTech en Chile. Formaliza y escala tu empresa 100% online.
                 </p>
+                <div class="flex gap-3 pt-1 text-gray-400">
+                    <span class="px-2 py-1 bg-gray-800 rounded text-[10px] font-semibold text-emerald-400 border border-gray-700">SII Verificado</span>
+                    <span class="px-2 py-1 bg-gray-800 rounded text-[10px] font-semibold text-blue-400 border border-gray-700">FEA Ley 19.799</span>
+                </div>
             </div>
 
             <!-- Columna 2: Enlaces Rápidos -->
             <div>
                 <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Navegación</h4>
                 <ul class="space-y-2">
-                    <li><a href="{% url 'pasarela' %}" class="hover:text-emerald-400 transition">Planes Disponibles</a></li>
+                    <li><a href="{% url 'pasarela' %}" class="hover:text-emerald-400 transition">Planes y Precios</a></li>
+                    <li><a href="{% url 'home' %}#como-funciona" class="hover:text-emerald-400 transition">Proceso de Activación</a></li>
+                    <li><a href="{% url 'home' %}#legaltech" class="hover:text-emerald-400 transition">Contratos LegalTech</a></li>
                     <li><a href="{% url 'registro' %}" class="hover:text-emerald-400 transition">Crear Cuenta</a></li>
-                    <li><a href="{% url 'login' %}" class="hover:text-emerald-400 transition">Acceso Clientes</a></li>
+                    <li><a href="{% url 'login' %}" class="hover:text-emerald-400 transition">Portal Clientes</a></li>
                 </ul>
             </div>
 
             <!-- Columna 3: Servicios -->
             <div>
-                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Servicios</h4>
+                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Soluciones</h4>
                 <ul class="space-y-2">
-                    <li><span class="text-gray-500">Dirección Tributaria SII</span></li>
-                    <li><span class="text-gray-500">Recepción de Correspondencia</span></li>
-                    <li><span class="text-gray-500">Salas de Reunión Providencia</span></li>
+                    <li><a href="{% url 'pasarela' %}" class="hover:text-emerald-400 transition">Domicilio Tributario SII</a></li>
+                    <li><a href="{% url 'pasarela' %}" class="hover:text-emerald-400 transition">Domicilio Comercial y Patente</a></li>
+                    <li><a href="{% url 'pasarela' %}" class="hover:text-emerald-400 transition">Oficina Virtual Pro</a></li>
+                    <li><a href="{% url 'home' %}#legaltech" class="hover:text-emerald-400 transition">Poderes Simples y Contratos FEA</a></li>
                 </ul>
             </div>
 
             <!-- Columna 4: Contacto -->
             <div>
-                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Contacto</h4>
+                <h4 class="font-bold text-white mb-3 uppercase tracking-wider text-[11px]">Casa Matriz</h4>
                 <ul class="space-y-2 text-gray-400">
-                    <li class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-emerald-500"></i> Av. Providencia 1234, Santiago</li>
+                    <li class="flex items-center gap-2"><i class="fa-solid fa-location-dot text-emerald-500"></i> Av. Providencia 1234, Of. 602, Santiago</li>
                     <li class="flex items-center gap-2"><i class="fa-solid fa-envelope text-emerald-500"></i> contacto@easyoffice.cl</li>
                     <li class="flex items-center gap-2"><i class="fa-solid fa-phone text-emerald-500"></i> +56 2 2345 6789</li>
+                    <li class="flex items-center gap-2"><i class="fa-regular fa-clock text-emerald-500"></i> Lun a Vie: 09:00 - 18:30 hrs</li>
                 </ul>
             </div>
         </div>

@@ -1,102 +1,457 @@
 {% extends "servicios/index.html" %}
 
-{% block title %}Easy Office - Oficina Virtual y Dirección Tributaria en Chile{% endblock %}
+{% block title %}Easy Office - Oficina Virtual, Dirección Tributaria y LegalTech en Chile{% endblock %}
 
 {% block content %}
-<div class="space-y-16 py-4">
+<div class="space-y-24 pb-12">
 
-    <!-- ================= HERO SECTION ================= -->
-    <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-8 md:p-14 shadow-2xl relative overflow-hidden">
-        <div class="max-w-3xl space-y-6 relative z-10">
-            <span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold text-xs px-3.5 py-1.5 rounded-full inline-flex items-center gap-2">
-                <i class="fa-solid fa-bolt text-emerald-400"></i> Formalización 100% Digital en Chile
-            </span>
-            <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-                Tu Empresa Lista para Operar con <span class="text-emerald-400">Dirección Tributaria</span> Inmediata.
-            </h1>
-            <p class="text-gray-300 text-sm md:text-base leading-relaxed">
-                Obtén la dirección comercial y tributaria autorizada por el SII para tu PYME o startup. Sin costos de arriendo físico ni contratos amarrados.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 pt-2">
-                <a href="{% url 'pasarela' %}" class="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                    Ver Planes y Contratar <i class="fa-solid fa-arrow-right"></i>
-                </a>
-                <a href="{% url 'registro' %}" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 backdrop-blur-sm">
-                    Crear Cuenta Gratis
-                </a>
+    <!-- ================= 1. HERO SECTION CORPORATIVO ================= -->
+    <section class="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white rounded-3xl p-8 md:p-14 lg:p-16 shadow-2xl relative overflow-hidden border border-slate-800">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
+            
+            <!-- Columna Izquierda: Propuesta Principal -->
+            <div class="lg:col-span-7 space-y-6">
+                <div class="inline-flex items-center gap-2 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold text-xs px-4 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Plataforma Oficial para Empresas y Startups en Chile
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.15]">
+                    Tu <span class="text-emerald-400">Dirección Tributaria</span> y Gestión Legal en un Solo Lugar.
+                </h1>
+
+                <p class="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl">
+                    Formaliza tu sociedad ante el <strong class="text-white">Servicio de Impuestos Internos (SII)</strong>, obtén patente comercial en comunas estratégicas de Santiago y emite documentos legales con <strong class="text-white">Firma Electrónica Avanzada</strong> en minutos.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-3.5 pt-2">
+                    <a href="{% url 'pasarela' %}" class="px-7 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                        Contratar Plan Ahora <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'perfil' %}" class="px-7 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 backdrop-blur-sm">
+                            <i class="fa-solid fa-gauge-high text-emerald-400"></i> Ir a Mi Panel
+                        </a>
+                    {% else %}
+                        <a href="{% url 'registro' %}" class="px-7 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-sm rounded-xl transition flex items-center justify-center gap-2 backdrop-blur-sm">
+                            Crear Cuenta Gratis
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Garantías Rápidas -->
+                <div class="pt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-400">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-400"></i> Activación inmediata</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-400"></i> Sin mes de garantía</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-emerald-400"></i> Comprobante PDF oficial al instante</span>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Vista Previa del Ecosistema Digital -->
+            <div class="lg:col-span-5">
+                <div class="bg-slate-900/90 border border-slate-700/80 rounded-2xl p-6 shadow-2xl backdrop-blur-md space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        </div>
+                        <span class="text-[11px] font-mono text-slate-400">easyoffice.cl/perfil</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-3.5 flex items-center justify-between">
+                            <div>
+                                <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-bold">Estado Tributario SII</p>
+                                <p class="text-sm font-bold text-white">Av. Providencia 1234, Of. 602</p>
+                            </div>
+                            <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-lg text-[10px] font-extrabold">
+                                ACTIVO
+                            </span>
+                        </div>
+
+                        <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-3.5 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-file-shield"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-white">Poder Simple SII - FEA</p>
+                                    <p class="text-[10px] font-mono text-slate-400">Folio verificable SHA-256</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-blue-400">PDF Listo</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div class="bg-slate-800/50 border border-slate-700/70 rounded-xl p-3">
+                                <p class="text-lg font-black text-white">+1.850</p>
+                                <p class="text-[11px] text-slate-400">Empresas constituidas</p>
+                            </div>
+                            <div class="bg-slate-800/50 border border-slate-700/70 rounded-xl p-3">
+                                <p class="text-lg font-black text-emerald-400">99.8%</p>
+                                <p class="text-[11px] text-slate-400">Aprobación SII</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- Decoración Visual -->
-        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Efectos de Luz Decorativos -->
+        <div class="absolute -right-16 -bottom-16 w-96 h-96 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-16 -top-16 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
     </section>
 
-    <!-- ================= PROPOSE DE VALOR / CARACTERÍSTICAS ================= -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-            <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-xl font-bold">
-                <i class="fa-solid fa-scale-balanced"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-900 text-base">Aprobación SII y Patente</h3>
-            <p class="text-gray-500 text-xs leading-relaxed">
-                Direcciones ubicadas en comunas estratégicas para garantizar la obtención de tu patente comercial municipal.
-            </p>
+    <!-- ================= 2. BARRA DE MÉTRICAS E INDICADORES ================= -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm text-center">
+            <p class="text-2xl md:text-3xl font-black text-gray-900">100%</p>
+            <p class="text-xs font-semibold text-gray-500 mt-1">Contratación y Firma Online</p>
         </div>
-
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-            <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-xl font-bold">
-                <i class="fa-solid fa-envelope-open-text"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-900 text-base">Gestión de Correspondencia</h3>
-            <p class="text-gray-500 text-xs leading-relaxed">
-                Recepcionamos tus cartas, encomiendas y notificaciones con digitalización e informaciones en tiempo real.
-            </p>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm text-center">
+            <p class="text-2xl md:text-3xl font-black text-emerald-600">&lt; 15 min</p>
+            <p class="text-xs font-semibold text-gray-500 mt-1">Emisión de Contrato Oficial</p>
         </div>
-
-        <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
-            <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-xl font-bold">
-                <i class="fa-solid fa-laptop-code"></i>
-            </div>
-            <h3 class="font-extrabold text-gray-900 text-base">Autogestión Centralizada</h3>
-            <p class="text-gray-500 text-xs leading-relaxed">
-                Accede a tu panel privado para descargar certificados, contratos y comprobantes de pago cuando lo necesites.
-            </p>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm text-center">
+            <p class="text-2xl md:text-3xl font-black text-gray-900">365 días</p>
+            <p class="text-xs font-semibold text-gray-500 mt-1">Vigencia y Alertas Automáticas</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm text-center">
+            <p class="text-2xl md:text-3xl font-black text-blue-600">24 / 7</p>
+            <p class="text-xs font-semibold text-gray-500 mt-1">Validación Pública de Folios</p>
         </div>
     </section>
 
-    <!-- ================= VISTA PREVIA DE PLANES ================= -->
-    <section class="space-y-8">
+    <!-- ================= 3. BENEFICIOS Y PROPUESTA DE VALOR ================= -->
+    <section id="beneficios" class="space-y-10 scroll-mt-24">
+        <div class="text-center max-w-2xl mx-auto space-y-2.5">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Por qué elegir Easy Office</span>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Todo lo que tu empresa necesita para operar sin fricciones</h2>
+            <p class="text-gray-500 text-xs md:text-sm">Reemplaza los altos costos fijos de una oficina tradicional por infraestructura tributaria y legal inteligente.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition space-y-3">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-building-shield"></i>
+                </div>
+                <h3 class="font-extrabold text-gray-900 text-base">Acreditación SII y Patente</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Direcciones comerciales habilitadas para verificación de actividad ante el SII y tramitación de patente municipal en Santiago.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition space-y-3">
+                <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+                <h3 class="font-extrabold text-gray-900 text-base">Documentos LegalTech con FEA</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Genera poderes simples para el SII, acuerdos de accionistas y contratos corporativos con sello criptográfico SHA-256.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition space-y-3">
+                <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                </div>
+                <h3 class="font-extrabold text-gray-900 text-base">Recepción de Correspondencia</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Custodia de cartas certificadas, notificaciones judiciales o tributarias y encomiendas con aviso oportuno a tu correo.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition space-y-3">
+                <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <h3 class="font-extrabold text-gray-900 text-base">Verificación Pública de Folios</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Cada documento emitido cuenta con un código de folio único verificable en línea por bancos, notarías o terceros.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-rose-300 transition space-y-3">
+                <div class="w-12 h-12 bg-rose-100 text-rose-700 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <h3 class="font-extrabold text-gray-900 text-base">Control de Vigencia y Alertas</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Monitoreo automático de días restantes de tu contrato con alertas preventivas 30 días antes del vencimiento para evitar multas.
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-md hover:border-teal-300 transition space-y-3">
+                <div class="w-12 h-12 bg-teal-100 text-teal-700 rounded-xl flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-people-group"></i>
+                </div>
+                <h3 class="font-extrabold text-gray-900 text-base">Salas de Reunión Equipadas</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Proyecta imagen corporativa recibiendo a tus clientes o inversionistas en nuestras oficinas en Providencia.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 4. CÓMO FUNCIONA EN 3 PASOS ================= -->
+    <section id="como-funciona" class="bg-white rounded-3xl p-8 md:p-12 border border-gray-200 shadow-sm space-y-10 scroll-mt-24">
         <div class="text-center max-w-2xl mx-auto space-y-2">
-            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Planes Adaptados a Tu Crecimiento</h2>
-            <p class="text-gray-500 text-xs md:text-sm">Selecciona la solución que mejor se ajuste a la etapa actual de tu negocio.</p>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Proceso 100% Digital</span>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Activa tu Oficina Virtual en 3 Simples Pasos</h2>
+            <p class="text-gray-500 text-xs md:text-sm">Sin trámites presenciales ni esperas innecesarias.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-3 relative">
+                <span class="w-9 h-9 rounded-full bg-emerald-600 text-white font-black text-sm flex items-center justify-center shadow-sm">1</span>
+                <h3 class="font-extrabold text-gray-900 text-base">Crea tu Cuenta Empresarial</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Registra los datos básicos de tu sociedad o persona natural en menos de un minuto para habilitar tu panel privado.
+                </p>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-3 relative">
+                <span class="w-9 h-9 rounded-full bg-emerald-600 text-white font-black text-sm flex items-center justify-center shadow-sm">2</span>
+                <h3 class="font-extrabold text-gray-900 text-base">Elige tu Plan y Contrata Online</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Selecciona Domicilio Tributario, Comercial u Oficina Virtual Pro. Obtén tu comprobante PDF oficial de inmediato.
+                </p>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200/80 space-y-3 relative">
+                <span class="w-9 h-9 rounded-full bg-emerald-600 text-white font-black text-sm flex items-center justify-center shadow-sm">3</span>
+                <h3 class="font-extrabold text-gray-900 text-base">Acredita ante SII y Opera</h3>
+                <p class="text-gray-500 text-xs leading-relaxed">
+                    Descarga tus contratos y genera poderes simples con Firma Electrónica Avanzada directamente desde tu perfil.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 5. MÓDULO LEGALTECH DESTACADO ================= -->
+    <section id="legaltech" class="bg-gradient-to-r from-slate-900 to-blue-950 text-white rounded-3xl p-8 md:p-12 shadow-xl border border-slate-800 scroll-mt-24">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div class="lg:col-span-7 space-y-4">
+                <span class="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold px-3.5 py-1 rounded-full">
+                    <i class="fa-solid fa-scale-balanced"></i> Exclusivo para Clientes Easy Office
+                </span>
+                <h2 class="text-2xl md:text-3xl font-black tracking-tight">
+                    Generador Automatizado de Documentos LegalTech
+                </h2>
+                <p class="text-slate-300 text-xs md:text-sm leading-relaxed">
+                    Todos nuestros clientes tienen acceso incluido desde su panel a la compilación instantánea de documentos legales en PDF con <strong class="text-white">Firma Electrónica Avanzada (FEA)</strong>, hash criptográfico SHA-256 y enlace público de verificación de autenticidad.
+                </p>
+                <div class="pt-2">
+                    <a href="{% if user.is_authenticated %}{% url 'perfil' %}{% else %}{% url 'registro' %}{% endif %}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-400 text-slate-950 font-extrabold text-xs rounded-xl transition shadow-md">
+                        <i class="fa-solid fa-file-pdf"></i> Probar Generador LegalTech
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="bg-white/10 border border-white/15 rounded-xl p-4 backdrop-blur-sm">
+                    <i class="fa-solid fa-landmark text-blue-400 text-lg mb-2"></i>
+                    <h4 class="font-bold text-white">Poder Simple SII</h4>
+                    <p class="text-slate-300 text-[11px] mt-1">Representación inmediata para trámites tributarios e inicio de actividades.</p>
+                </div>
+                <div class="bg-white/10 border border-white/15 rounded-xl p-4 backdrop-blur-sm">
+                    <i class="fa-solid fa-handshake text-emerald-400 text-lg mb-2"></i>
+                    <h4 class="font-bold text-white">Acuerdo Accionistas</h4>
+                    <p class="text-slate-300 text-[11px] mt-1">Actas extraordinarias, aumento de capital y modificación de poderes.</p>
+                </div>
+                <div class="bg-white/10 border border-white/15 rounded-xl p-4 backdrop-blur-sm">
+                    <i class="fa-solid fa-car text-amber-400 text-lg mb-2"></i>
+                    <h4 class="font-bold text-white">Arriendo de Vehículo</h4>
+                    <p class="text-slate-300 text-[11px] mt-1">Contratos corporativos para acreditar gastos de flota comercial.</p>
+                </div>
+                <div class="bg-white/10 border border-white/15 rounded-xl p-4 backdrop-blur-sm">
+                    <i class="fa-solid fa-square-parking text-purple-400 text-lg mb-2"></i>
+                    <h4 class="font-bold text-white">Estacionamiento</h4>
+                    <p class="text-slate-300 text-[11px] mt-1">Contratos de arriendo de espacios privados listos para firma.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 6. CATÁLOGO DINÁMICO DE PLANES ================= -->
+    <section id="planes" class="space-y-8 scroll-mt-24">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Tarifas Transparentes</span>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Planes Adaptados a Cada Etapa de tu Negocio</h2>
+            <p class="text-gray-500 text-xs md:text-sm">Sin letra chica ni cobros ocultos. Contrata hoy y comienza a operar de inmediato.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             {% for plan in planes %}
-                <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between hover:border-emerald-500 transition relative">
+                <div class="bg-white rounded-2xl p-7 border {% if forloop.counter == 2 %}border-emerald-500 ring-2 ring-emerald-500/20 shadow-lg{% else %}border-gray-200 shadow-sm{% endif %} flex flex-col justify-between hover:border-emerald-500 transition relative">
+                    {% if forloop.counter == 2 %}
+                        <span class="absolute -top-3 right-6 bg-emerald-600 text-white text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                            Más Elegido
+                        </span>
+                    {% endif %}
+
                     <div class="space-y-4">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900">{{ plan.nombre }}</h3>
-                            <p class="text-gray-400 text-xs mt-1 leading-relaxed">{{ plan.descripcion }}</p>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded">
+                                {{ plan.get_tipo_servicio_display|default:"Servicio Empresarial" }}
+                            </span>
+                            <h3 class="text-xl font-extrabold text-gray-900 mt-3">{{ plan.nombre }}</h3>
+                            <p class="text-gray-500 text-xs mt-1.5 leading-relaxed">{{ plan.descripcion }}</p>
                         </div>
-                        <div class="text-2xl font-black text-emerald-600">
-                            {% if plan.precio_anual %}
-                                ${{ plan.precio_anual|floatformat:0 }} <span class="text-xs text-gray-400 font-normal">CLP / año</span>
-                            {% elif plan.precio_mensual %}
-                                ${{ plan.precio_mensual|floatformat:0 }} <span class="text-xs text-gray-400 font-normal">CLP / mes</span>
-                            {% else %}
-                                ${{ plan.precio|default:0|floatformat:0 }} <span class="text-xs text-gray-400 font-normal">CLP</span>
-                            {% endif %}
+
+                        <div class="pt-2 border-t border-gray-100">
+                            <div class="text-3xl font-black text-gray-900">
+                                {% if plan.precio_anual %}
+                                    ${{ plan.precio_anual|floatformat:0 }} <span class="text-xs text-gray-400 font-semibold">CLP / año</span>
+                                {% elif plan.precio_mensual %}
+                                    ${{ plan.precio_mensual|floatformat:0 }} <span class="text-xs text-gray-400 font-semibold">CLP / mes</span>
+                                {% else %}
+                                    ${{ plan.precio|default:0|floatformat:0 }} <span class="text-xs text-gray-400 font-semibold">CLP</span>
+                                {% endif %}
+                            </div>
                         </div>
+
+                        <ul class="space-y-2 text-xs text-gray-600 pt-2">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Contrato digital y comprobante PDF</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Acceso a generador LegalTech FEA</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500"></i> Soporte ejecutivo dedicado</li>
+                        </ul>
                     </div>
-                    <a href="{% url 'pasarela' %}" class="mt-6 w-full py-2.5 bg-gray-900 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl text-center transition">
-                        Contratar Plan
+
+                    <a href="{% url 'pasarela' %}" class="mt-7 w-full py-3 {% if forloop.counter == 2 %}bg-emerald-600 hover:bg-emerald-700 text-white{% else %}bg-gray-900 hover:bg-emerald-600 text-white{% endif %} font-bold text-xs rounded-xl text-center transition shadow-sm flex items-center justify-center gap-2">
+                        Seleccionar Plan <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
             {% empty %}
-                <div class="col-span-3 text-center py-8 text-gray-400 text-xs border border-dashed rounded-2xl">
-                    Cargando catálogo de servicios...
+                <div class="col-span-3 text-center py-10 text-gray-400 text-xs border border-dashed rounded-2xl bg-white">
+                    No hay planes activos publicados en este momento.
                 </div>
             {% endfor %}
+        </div>
+    </section>
+
+    <!-- ================= 7. TESTIMONIOS DE CLIENTES ================= -->
+    <section class="space-y-8">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Casos de Éxito</span>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Empresas que ya operan con Easy Office</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-4">
+                <div class="flex text-amber-400 text-xs gap-1">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-gray-600 text-xs leading-relaxed italic">
+                    "Constituimos nuestra SpA en un día y con el contrato de Easy Office acreditamos domicilio ante el SII sin ninguna observación. El panel de descarga de PDFs ahorra muchísimo tiempo."
+                </p>
+                <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+                    <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center">CM</div>
+                    <div>
+                        <p class="font-bold text-gray-900 text-xs">Camila Muñoz</p>
+                        <p class="text-[11px] text-gray-400">Fundadora, Andes Cloud SpA</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-4">
+                <div class="flex text-amber-400 text-xs gap-1">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-gray-600 text-xs leading-relaxed italic">
+                    "La función de generar poderes simples para el SII y acuerdos de accionistas con folio verificable en línea nos evitó ir tres veces a notaría este trimestre."
+                </p>
+                <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+                    <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center">RV</div>
+                    <div>
+                        <p class="font-bold text-gray-900 text-xs">Rodrigo Valenzuela</p>
+                        <p class="text-[11px] text-gray-400">Gerente General, V&A Consultores</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm space-y-4">
+                <div class="flex text-amber-400 text-xs gap-1">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                </div>
+                <p class="text-gray-600 text-xs leading-relaxed italic">
+                    "Trabajamos 100% remoto desde regiones, pero necesitábamos dirección comercial en Providencia para licitaciones. Excelente atención y transparencia en los vencimientos."
+                </p>
+                <div class="flex items-center gap-3 pt-2 border-t border-gray-100">
+                    <div class="w-9 h-9 rounded-full bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center">FS</div>
+                    <div>
+                        <p class="font-bold text-gray-900 text-xs">Fernanda Soto</p>
+                        <p class="text-[11px] text-gray-400">Directora Comercial, BioNorte Ltda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= 8. PREGUNTAS FRECUENTES (FAQ) ================= -->
+    <section id="faq" class="max-w-3xl mx-auto space-y-6 scroll-mt-24">
+        <div class="text-center space-y-2">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Resolvemos tus dudas</span>
+            <h2 class="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Preguntas Frecuentes</h2>
+        </div>
+
+        <div class="space-y-3">
+            <details class="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm" open>
+                <summary class="flex justify-between items-center font-bold text-gray-900 text-sm cursor-pointer list-none">
+                    <span>¿Sirve la Dirección Tributaria de Easy Office para iniciar actividades en el SII?</span>
+                    <i class="fa-solid fa-chevron-down text-gray-400 group-open:rotate-180 transition text-xs"></i>
+                </summary>
+                <p class="text-gray-600 text-xs leading-relaxed mt-3 pt-3 border-t border-gray-100">
+                    Sí. Nuestros contratos cumplen con todos los requisitos exigidos por el Servicio de Impuestos Internos para acreditar domicilio y realizar verificación de actividad económica en primera y segunda categoría.
+                </p>
+            </details>
+
+            <details class="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                <summary class="flex justify-between items-center font-bold text-gray-900 text-sm cursor-pointer list-none">
+                    <span>¿Cuánto demora la entrega del contrato y comprobante oficial?</span>
+                    <i class="fa-solid fa-chevron-down text-gray-400 group-open:rotate-180 transition text-xs"></i>
+                </summary>
+                <p class="text-gray-600 text-xs leading-relaxed mt-3 pt-3 border-t border-gray-100">
+                    La emisión es inmediata. Una vez completada la contratación en nuestra pasarela online, puedes descargar el comprobante oficial en PDF directamente desde tu panel de cliente.
+                </p>
+            </details>
+
+            <details class="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                <summary class="flex justify-between items-center font-bold text-gray-900 text-sm cursor-pointer list-none">
+                    <span>¿Cómo funciona la validación de folios del módulo LegalTech?</span>
+                    <i class="fa-solid fa-chevron-down text-gray-400 group-open:rotate-180 transition text-xs"></i>
+                </summary>
+                <p class="text-gray-600 text-xs leading-relaxed mt-3 pt-3 border-t border-gray-100">
+                    Cada documento emitido genera un identificador único de folio y un hash SHA-256. Al pie del PDF se incluye una URL pública donde cualquier entidad puede comprobar su autenticidad en tiempo real.
+                </p>
+            </details>
+
+            <details class="group bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
+                <summary class="flex justify-between items-center font-bold text-gray-900 text-sm cursor-pointer list-none">
+                    <span>¿Cómo me entero cuando mi plan esté próximo a vencer?</span>
+                    <i class="fa-solid fa-chevron-down text-gray-400 group-open:rotate-180 transition text-xs"></i>
+                </summary>
+                <p class="text-gray-600 text-xs leading-relaxed mt-3 pt-3 border-t border-gray-100">
+                    Tu panel muestra en tiempo real los días restantes de vigencia y activa una alerta visual preventiva 30 días antes del vencimiento, permitiéndote renovar en un clic.
+                </p>
+            </details>
+        </div>
+    </section>
+
+    <!-- ================= 9. BANNER FINAL DE CONVERSIÓN (CTA) ================= -->
+    <section class="bg-emerald-600 rounded-3xl p-8 md:p-12 text-white text-center space-y-5 shadow-xl">
+        <h2 class="text-2xl md:text-4xl font-black tracking-tight">¿Listo para formalizar y hacer crecer tu empresa?</h2>
+        <p class="text-emerald-100 text-xs md:text-sm max-w-xl mx-auto leading-relaxed">
+            Únete a cientos de emprendedores y empresas que ya gestionan su domicilio tributario y documentación legal desde Easy Office.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-3 pt-2">
+            <a href="{% url 'pasarela' %}" class="px-8 py-3.5 bg-slate-950 hover:bg-slate-900 text-white font-extrabold text-xs rounded-xl shadow-lg transition">
+                Explorar Planes Disponibles
+            </a>
+            <a href="{% url 'registro' %}" class="px-8 py-3.5 bg-white hover:bg-emerald-50 text-emerald-900 font-extrabold text-xs rounded-xl shadow-sm transition">
+                Crear Cuenta Gratis
+            </a>
         </div>
     </section>
 
