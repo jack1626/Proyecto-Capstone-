@@ -167,7 +167,19 @@ def registro_view(request):
     if request.method == 'POST':
         form = RegistroClienteForm(request.POST)
         if form.is_valid():
-            cliente = form.save()
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=form.cleaned_data['username'],
+                    email=form.cleaned_data['email'],
+                    password=form.cleaned_data['password'],
+                    first_name=form.cleaned_data['razon_social'][:30],
+                    is_staff=False
+                )
+                grupo_cliente, _ = Group.objects.get_or_create(name='Cliente')
+                user.groups.add(grupo_cliente)
+                form.save()
+
+            login(request, user)
             return redirect('perfil')
     else:
         form = RegistroClienteForm()
